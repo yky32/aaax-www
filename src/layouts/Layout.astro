@@ -7,8 +7,8 @@ interface Props {
 }
 
 const {
-  title = "AAAX — Identity you run. Signals you own.",
-  description = "Self-host OIDC for Spring and platform teams. Lean issuer + Identity Event Bus — your mesh notifies, you keep SMS.",
+  title = "AAAX — self-host OIDC for Spring teams",
+  description = "Small Spring Authorization Server with an Identity Event Bus. Your mesh sends SMS. Apache-2.0.",
 } = Astro.props;
 ---
 
@@ -25,8 +25,7 @@ const {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
   </head>
-  <body class="mesh min-h-screen text-[var(--ink)] antialiased">
-    <div class="pointer-events-none fixed inset-0 grid-fade" aria-hidden="true"></div>
+  <body>
     <slot />
   </body>
 </html>

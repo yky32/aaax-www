@@ -1,14 +1,15 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 
 :root {
-  --bg: #070b12;
-  --elevated: #0d1420;
-  --line: rgba(148, 163, 184, 0.14);
-  --ink: #e8eef7;
-  --muted: #94a3b8;
-  --sky: #38bdf8;
-  --good: #34d399;
+  --bg: #0a0a0a;
+  --panel: #111111;
+  --line: #2a2a2a;
+  --ink: #f2f2f2;
+  --muted: #a3a3a3;
+  --dim: #737373;
+  --link: #93c5fd;
+  --border: #262626;
 }
 
 html {
@@ -22,41 +23,63 @@ body {
   color: var(--ink);
   font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  line-height: 1.5;
 }
 
 ::selection {
-  background: rgba(56, 189, 248, 0.35);
+  background: #262626;
   color: #fff;
 }
 
-.mesh {
-  background:
-    radial-gradient(ellipse 80% 50% at 20% -10%, rgba(56, 189, 248, 0.18), transparent 55%),
-    radial-gradient(ellipse 60% 40% at 90% 10%, rgba(129, 140, 248, 0.16), transparent 50%),
-    radial-gradient(ellipse 50% 30% at 50% 100%, rgba(52, 211, 153, 0.08), transparent 45%),
-    var(--bg);
-}
-
-.grid-fade {
-  background-image:
-    linear-gradient(rgba(148, 163, 184, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(148, 163, 184, 0.06) 1px, transparent 1px);
-  background-size: 48px 48px;
-  mask-image: radial-gradient(ellipse 70% 60% at 50% 30%, black, transparent);
-}
-
-.glass {
-  background: rgba(13, 20, 32, 0.72);
-  border: 1px solid var(--line);
-  backdrop-filter: blur(16px);
-}
-
-.glow {
-  box-shadow:
-    0 0 0 1px rgba(56, 189, 248, 0.25),
-    0 20px 60px -20px rgba(56, 189, 248, 0.35);
+a {
+  color: inherit;
 }
 
 .mono {
   font-family: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+.rule {
+  border-color: var(--border);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem 0.95rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  text-decoration: none;
+}
+
+.btn-primary {
+  background: var(--ink);
+  color: var(--bg);
+  border-color: var(--ink);
+}
+
+.btn-primary:hover {
+  background: #fff;
+}
+
+.btn-ghost:hover {
+  border-color: #525252;
+  background: #141414;
+}
+
+.link {
+  color: var(--link);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.link:hover {
+  color: #bfdbfe;
 }
