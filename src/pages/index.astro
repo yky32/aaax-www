@@ -3,61 +3,32 @@ import Layout from "../layouts/Layout.astro";
 import FlowStage from "../components/FlowStage.astro";
 
 const GH = "https://github.com/yky32/aaax";
-const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.7.0";
-const BOOKLET = "https://github.com/yky32/aaax/blob/main/docs/booklet.md";
-const MESH = "https://github.com/yky32/aaax/tree/main/examples/compose-mesh";
-const SPA = "https://github.com/yky32/aaax/tree/main/examples/spa-pkce";
-const RS = "https://github.com/yky32/aaax/tree/main/examples/resource-server-boot4";
-const CHANGELOG = "https://github.com/yky32/aaax/blob/main/CHANGELOG.md";
+const README = "https://github.com/yky32/aaax/blob/main/README.md";
 
-const oidc = [
-  { t: "OIDC Authorization Server", d: "Discovery, JWKS, authorization code, refresh, client credentials." },
-  { t: "PKCE public client", d: "Seeded aaax-spa — no client secret; SPA example included." },
-  { t: "Confidential clients", d: "Admin CRUD · demo client aaax-demo for server-side apps." },
-  { t: "File-backed JWK", d: "AAAX_JWK_PATH — stable keys across restarts." },
+const modules = [
+  {
+    t: "aaax-server",
+    d: "qs/uaa 1:1 — OIDC Authorization Server, accounts, OTP, devices, social, admin paths. Package com.aaax.*",
+  },
+  {
+    t: "aaax-core",
+    d: "qs app-core in-repo — BizException, R/Result, AuditEntity, SystemResponse. Package com.aaax.core — no private Maven.",
+  },
 ];
 
-const login = [
-  { t: "Password", d: "Register, change, forgot / reset with OTP." },
-  { t: "OTP", d: "console · mail · Kafka event · SMS webhook — you own the carrier." },
-  { t: "Magic link", d: "Email token login path." },
-  { t: "QR login", d: "Desktop shows code; phone approves; memory or Redis store." },
-  { t: "TOTP MFA", d: "Setup, confirm, disable; can pair with trusted devices." },
-  { t: "Trusted devices", d: "AAAX_DEVICE cookie — optional skip TOTP on known device." },
-  { t: "Social (opt-in)", d: "Google · GitHub · Apple · Discord · GitLab · LINE · Slack — env credentials; link/unlink on /user/." },
-  { t: "Passkeys (opt-in)", d: "webauthn4j; AAAX_PASSKEYS_ENABLED=false by default." },
-  { t: "SAML SP (opt-in)", d: "Login with external IdP via metadata." },
+const fromUaa = [
+  { t: "OIDC Authorization Server", d: "Spring Authorization Server — code, refresh, client credentials." },
+  { t: "User · Authentication model", d: "uaa PO tree: user / authentication / devices / tokens / RBAC." },
+  { t: "OTP & password flows", d: "uaa use cases + error codes (UAA/OTP/ACC style Response codes)." },
+  { t: "Social auth extensions", d: "uaa social_auth config extensions (Google etc.)." },
+  { t: "Redis · Kafka · Liquibase", d: "Same ops surface as qs uaa." },
+  { t: "Exception envelope", d: "throw new BizException(Response) → R/Result — app-core shape." },
 ];
-
-const bus = [
-  { t: "Catalog v1.0", d: "login · MFA · OTP dispatch · client changes — additive types." },
-  { t: "Kafka sink", d: "AAAX_EVENTS_KAFKA_* → topic aaax.identity.events." },
-  { t: "HMAC webhook", d: "X-AAAX-Signature: sha256=… · retries · event id headers." },
-  { t: "Admin catalog API", d: "GET /v1/admin/events/catalog · audit list with eventId." },
-];
-
-const platform = [
-  { t: "Hosted UI (same jar)", d: "/sign-in · /sign-up · /user · /admin — no separate frontend deploy." },
-  { t: "Sessions", d: "List / revoke / revoke-all for the signed-in account." },
-  { t: "Accounts & roles", d: "Bootstrap admin · enable/disable · role patches." },
-  { t: "OTP / QR stores", d: "memory default · Redis multi-node (AAAX_OTP_STORE / AAAX_QR_STORE)." },
-  { t: "Single application.yml", d: "Helm/env overrides only — no profile YAML pile." },
-  { t: "Layer-first code", d: "endpoint/ · usecase/ · entity/po|dto|model · repository/ · spi/." },
-];
-
-const examples = [
-  { t: "compose-mesh", href: MESH, d: "Postgres + Redis + Kafka + HMAC webhook sink." },
-  { t: "spa-pkce", href: SPA, d: "Browser PKCE demo + thin aaax.js helper." },
-  { t: "resource-server-boot4", href: RS, d: "JWT resource server validating AAAX tokens." },
-  { t: "curl scripts", href: `${GH}/tree/main/examples/curl`, d: "Token + hello · admin events smoke." },
-];
-
-const out = ["Multi-tenant orgs", "SAML IdP", "Official React SDK", "LDAP", "Full Clerk component kit", "MCP gateway / PRM host (AS-ready — see MCP Auth)"];
 ---
 
 <Layout
-  title="AAAX — self-host OIDC for Spring teams"
-  description="Self-host OIDC Authorization Server on Spring Boot 4. Password, OTP, QR, MFA, Event Bus, admin UI, SPA PKCE. Apache-2.0."
+  title="AAAX — qs/uaa open-sourced"
+  description="AAAX is a 1:1 open-source port of qs/uaa with app-core vendored as com.aaax.core. Spring Boot 3.1 · Apache-2.0."
 >
   <div class="wrap wrap--wide">
     <header class="flex items-start justify-between gap-4">
@@ -67,247 +38,80 @@ const out = ["Multi-tenant orgs", "SAML IdP", "Official React SDK", "LDAP", "Ful
           Accounts · Authentication · Authorization · eXperiences
         </p>
       </div>
-      <nav class="flex flex-wrap items-center justify-end gap-x-3 gap-y-1 mono text-sm">
-        <a class="underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--ink)]" href="#features"
-          >Features</a
-        >
-        <a class="underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--ink)]" href="/mcp-auth"
-          >MCP Auth</a
-        >
-        <a
-          class="underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--ink)]"
-          href={GH}>GitHub ↗</a
-        >
-      </nav>
+      <a
+        class="mono text-sm underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--ink)]"
+        href={GH}>GitHub ↗</a
+      >
     </header>
 
     <p class="stamp mt-7">
       <span class="dot" aria-hidden="true"></span>
-      v0.7.0 · Apache-2.0 · JDK&nbsp;21 · Spring Boot&nbsp;4.1
+      0.9.0-SNAPSHOT · Apache-2.0 · Boot&nbsp;3.1 · JDK&nbsp;17+
     </p>
 
     <h1 class="serif mt-4 text-[2.2rem] leading-[1.12] md:text-[2.85rem] md:leading-[1.08]">
-      The IdP that <span class="mark">talks to your mesh</span>, not a seat counter.
+      qs/<span class="mark">uaa</span> · open source · your mesh.
     </h1>
 
     <p class="mt-4 text-[1.02rem] text-[var(--muted)]">
-      Self-host <strong class="font-medium text-[var(--ink)]">OpenID Connect</strong> on Spring Boot — one jar for
-      login UX + AS. Lifecycle signals leave as CloudEvents so
-      <strong class="font-medium text-[var(--ink)]">your</strong> notification service still owns SMS and email.
+      <strong class="font-medium text-[var(--ink)]">AAAX</strong> is not a greenfield rewrite.
+      It is a <strong class="font-medium text-[var(--ink)]">1:1 port of qs/uaa</strong> with
+      <strong class="font-medium text-[var(--ink)]">app-core vendored</strong> as
+      <span class="mono text-[0.9rem]">com.aaax.core</span> — one public repo, no private Maven.
     </p>
 
     <div class="mt-6 flex flex-wrap gap-2.5">
       <a class="btn btn-fill" href={GH}>Open the repo</a>
-      <a class="btn btn-ghost" href={BOOKLET}>Booklet</a>
-      <a class="btn btn-ghost" href={RELEASE}>v0.7.0</a>
-      <a class="btn btn-ghost" href={MESH}>Mesh example</a>
+      <a class="btn btn-ghost" href={README}>README</a>
+      <a class="btn btn-ghost" href="/mcp-auth">MCP Auth</a>
     </div>
 
     <section class="mt-11" aria-labelledby="flow">
       <h2 id="flow" class="serif text-[1.65rem] md:text-2xl">Login → Spring → mesh</h2>
       <p class="mt-2 text-sm text-[var(--muted)]">
-        Black path = authenticate &amp; tokens. Orange = identity events out of AAAX.
+        Same idea as before: authenticate in AAAX; notify from your stack.
       </p>
       <FlowStage />
     </section>
 
     <hr class="rule" />
 
-    <!-- Features -->
-    <section id="features" aria-labelledby="feat">
-      <h2 id="feat" class="serif text-[1.65rem] md:text-2xl">What’s in v0.7.0</h2>
-      <p class="mt-2 text-[var(--muted)]">
-        Everything below ships in the open jar unless marked opt-in. Source of truth:
-        <a class="underline underline-offset-3" href={BOOKLET}>docs/booklet.md</a>.
-      </p>
-
-      <h3 class="mt-8 text-sm font-semibold tracking-wide text-[var(--ink)]">OIDC &amp; clients</h3>
-      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+    <section id="modules" aria-labelledby="mod">
+      <h2 id="mod" class="serif text-[1.65rem] md:text-2xl">Repository layout</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
         {
-          oidc.map((f) => (
-            <article class="card">
-              <h3>{f.t}</h3>
-              <p>{f.d}</p>
-            </article>
-          ))
-        }
-      </div>
-
-      <h3 class="mt-9 text-sm font-semibold tracking-wide text-[var(--ink)]">Sign-in experiences</h3>
-      <div class="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {
-          login.map((f) => (
-            <article class="card">
-              <h3>{f.t}</h3>
-              <p>{f.d}</p>
-            </article>
-          ))
-        }
-      </div>
-
-      <h3 class="mt-9 text-sm font-semibold tracking-wide text-[var(--ink)]">Identity Event Bus</h3>
-      <p class="mt-2 text-sm text-[var(--muted)]">
-        Primary product wedge — <em>AAAX authenticates. Your mesh notifies.</em>
-      </p>
-      <div class="mt-3 grid gap-3 sm:grid-cols-2">
-        {
-          bus.map((f) => (
+          modules.map((m) => (
             <article class="card card--accent">
-              <h3>{f.t}</h3>
-              <p>{f.d}</p>
+              <h3 class="mono text-[0.95rem]">{m.t}</h3>
+              <p>{m.d}</p>
             </article>
           ))
         }
       </div>
+      <div class="shell mt-4">
+        <div class="shell-bar">clone · build · run</div>
+        <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
+export JAVA_HOME=…/openjdk@21   <span class="c"># 17+ ; avoid JDK 26 + old lombok</span>
+mvn -pl aaax-server -am package -Dmaven.test.skip=true
+java -jar aaax-server/target/aaax-server-0.9.0-SNAPSHOT.jar
+<span class="c"># :8081 — same default as qs uaa</span></code></pre>
+      </div>
+    </section>
 
-      <h3 class="mt-9 text-sm font-semibold tracking-wide text-[var(--ink)]">Platform &amp; ops</h3>
-      <div class="mt-3 grid gap-3 sm:grid-cols-2">
+    <section class="mt-12" aria-labelledby="feat">
+      <h2 id="feat" class="serif text-[1.65rem] md:text-2xl">From qs/uaa (now OSS)</h2>
+      <p class="mt-2 text-[var(--muted)]">
+        Feature surface follows the uaa tree — not an invented AAAX-only matrix.
+      </p>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
         {
-          platform.map((f) => (
+          fromUaa.map((f) => (
             <article class="card">
               <h3>{f.t}</h3>
               <p>{f.d}</p>
             </article>
           ))
         }
-      </div>
-    </section>
-
-    <!-- Hosted paths -->
-    <section class="mt-12" aria-labelledby="ui">
-      <h2 id="ui" class="serif text-[1.65rem] md:text-2xl">Hosted UI (same jar)</h2>
-      <div class="shell mt-3">
-        <div class="shell-bar">static paths · no separate SPA deploy</div>
-        <pre><code>/sign-in/     password · magic · OTP · QR · social
-/sign-up/
-/user/        profile · sessions · devices · passkeys*
-/admin/       users · clients · events · audit · settings
-
-<span class="c">* passkeys when AAAX_PASSKEYS_ENABLED=true</span></code></pre>
-      </div>
-    </section>
-
-    <!-- OTP channels -->
-    <section class="mt-12" aria-labelledby="otp">
-      <h2 id="otp" class="serif text-[1.65rem] md:text-2xl">OTP / SMS — no carrier SDK</h2>
-      <div class="mt-4 overflow-x-auto">
-        <table class="feat-table">
-          <thead>
-            <tr>
-              <th>AAAX_OTP_CHANNEL</th>
-              <th>Behavior</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td class="mono">console</td>
-              <td>Log codes (local default)</td>
-            </tr>
-            <tr>
-              <td class="mono">mail</td>
-              <td>SMTP</td>
-            </tr>
-            <tr>
-              <td class="mono">kafka</td>
-              <td>Event for <strong>your</strong> notification-service</td>
-            </tr>
-            <tr>
-              <td class="mono">sms</td>
-              <td>HTTP webhook to <strong>your</strong> SMS adapter</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-    </section>
-
-    <!-- Examples -->
-    <section class="mt-12" aria-labelledby="ex">
-      <h2 id="ex" class="serif text-[1.65rem] md:text-2xl">Examples</h2>
-      <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        {
-          examples.map((e) => (
-            <a class="card card--link" href={e.href}>
-              <h3 class="mono text-[0.9rem]">{e.t} ↗</h3>
-              <p>{e.d}</p>
-            </a>
-          ))
-        }
-      </div>
-    </section>
-
-    <!-- MCP -->
-    <section class="mt-12" aria-labelledby="mcp">
-      <h2 id="mcp" class="serif text-[1.65rem] md:text-2xl">MCP Auth</h2>
-      <p class="mt-3 text-[var(--muted)]">
-        Remote MCP servers are OAuth Resource Servers. AAAX is a self-host OIDC <strong class="text-[var(--ink)]"
-          >Authorization Server</strong
-        > you can point PRM at (JWKS + PKCE today). Full MCP gateway is not in-tree yet.
-      </p>
-      <p class="mt-3">
-        <a class="btn btn-ghost" href="/mcp-auth">MCP Auth index</a>
-      </p>
-    </section>
-
-    <!-- Not in -->
-    <section class="mt-12" aria-labelledby="out">
-      <h2 id="out" class="serif text-[1.65rem] md:text-2xl">Not in 0.7</h2>
-      <ul class="out-list mt-3">
-        {out.map((x) => <li>{x}</li>)}
-      </ul>
-      <p class="mt-3 text-sm text-[var(--muted)]">
-        Full matrix:
-        <a class="underline underline-offset-3" href={`${BOOKLET}#6-scope--status`}>booklet §6</a>
-        ·
-        <a class="underline underline-offset-3" href={CHANGELOG}>CHANGELOG</a>
-      </p>
-    </section>
-
-    <hr class="rule" />
-
-    <section aria-labelledby="run">
-      <h2 id="run" class="serif text-[1.65rem] md:text-2xl">Five minutes</h2>
-      <div class="shell mt-3">
-        <div class="shell-bar">local · JDK 21+</div>
-        <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
-git checkout v0.7.0
-mvn test && mvn spring-boot:run
-
-<span class="c"># demo / demo1234 · admin / admin12345 · :8081</span>
-./examples/curl/get-token-and-hello.sh
-
-<span class="c"># mesh (Docker)</span>
-mvn -DskipTests package
-cd examples/compose-mesh && docker compose up --build</code></pre>
-      </div>
-      <p class="mt-3 text-sm text-[var(--muted)]">
-        Demo client <span class="mono">aaax-demo</span> · SPA
-        <span class="mono">aaax-spa</span> (PKCE). Prod: seed flags false via Helm env.
-      </p>
-    </section>
-
-    <section class="mt-12" aria-labelledby="fit">
-      <h2 id="fit" class="serif text-[1.65rem] md:text-2xl">Who it’s for</h2>
-      <div class="mt-4 grid gap-3 sm:grid-cols-2">
-        <article class="card">
-          <h3>You already have a mesh</h3>
-          <p>Kafka / notify exists. SMS stays outside the IdP.</p>
-        </article>
-        <article class="card">
-          <h3>You read Spring code</h3>
-          <p>
-            <span class="mono text-[0.8rem]">endpoint/</span> ·
-            <span class="mono text-[0.8rem]">usecase/</span> ·
-            <span class="mono text-[0.8rem]">entity/</span>
-          </p>
-        </article>
-        <article class="card">
-          <h3>Lean OIDC is enough</h3>
-          <p>One <span class="mono text-[0.8rem]">application.yml</span>; Helm env for prod.</p>
-        </article>
-        <article class="card">
-          <h3>Not chasing Keycloak</h3>
-          <p>No kitchen-sink console. Orgs / SAML IdP later if needed.</p>
-        </article>
       </div>
     </section>
 
@@ -319,20 +123,14 @@ cd examples/compose-mesh && docker compose up --build</code></pre>
         AAAX authenticates.<br />Your mesh notifies.
       </blockquote>
       <p class="mt-4 text-sm text-[var(--muted)]">
-        <a class="underline underline-offset-3" href={MESH}>examples/compose-mesh</a>
-        ·
-        <a class="underline underline-offset-3" href={BOOKLET}>booklet</a>
-        ·
-        <a class="underline underline-offset-3" href="/mcp-auth">MCP Auth</a>
-        ·
-        <a class="underline underline-offset-3" href={GH}>github.com/yky32/aaax</a>
+        Product name: <strong class="text-[var(--ink)]">AAAX</strong> · upstream craft:
+        <strong class="text-[var(--ink)]">qs/uaa + app-core</strong> · license Apache-2.0
       </p>
     </section>
 
     <footer class="site">
       <p>
-        AAAX by <a href="https://github.com/yky32">yky32</a> · Apache-2.0 · product is the jar · site tracks
-        v0.7.0 features
+        AAAX by <a href="https://github.com/yky32">yky32</a> · port of qs/uaa · core in-tree
       </p>
     </footer>
   </div>
