@@ -5,157 +5,140 @@ const GH = "https://github.com/yky32/aaax";
 const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.7.0";
 const BOOKLET = "https://github.com/yky32/aaax/blob/main/docs/booklet.md";
 const MESH = "https://github.com/yky32/aaax/tree/main/examples/compose-mesh";
-const SPA = "https://github.com/yky32/aaax/tree/main/examples/spa-pkce";
 ---
 
-<Layout title="AAAX — self-host OIDC for Spring teams">
-  <div class="mx-auto max-w-3xl px-5 py-10 md:py-14">
-    <header class="flex items-baseline justify-between gap-4 border-b rule pb-6">
+<Layout>
+  <div class="wrap">
+    <header class="flex items-start justify-between gap-4">
       <div>
-        <p class="text-xl font-semibold tracking-tight">AAAX</p>
-        <p class="mt-1 text-sm text-[var(--muted)]">
-          Accounts · Authentication · Authorization · eXperiences
-        </p>
+        <p class="mono text-sm font-medium tracking-wide">AAAX</p>
+        <p class="mt-1 text-sm text-[var(--muted)]">for Spring / platform teams</p>
       </div>
-      <a class="link mono text-sm" href={GH}>github</a>
+      <a class="mono text-sm underline underline-offset-4 decoration-[var(--line)] hover:decoration-[var(--ink)]" href={GH}
+        >GitHub ↗</a
+      >
     </header>
 
-    <main class="pt-10">
-      <p class="mono text-xs text-[var(--dim)]">v0.7.0 · Apache-2.0 · JDK 21 · Spring Boot 4.1</p>
+    <p class="stamp mt-8">
+      <span class="dot" aria-hidden="true"></span>
+      v0.7.0 · Apache-2.0 · JDK&nbsp;21
+    </p>
 
-      <h1 class="mt-4 text-3xl font-semibold tracking-tight md:text-4xl">
-        Self-host OIDC without dragging Keycloak into the mesh.
-      </h1>
+    <h1 class="serif mt-5 text-[2.35rem] leading-[1.12] md:text-[3.1rem] md:leading-[1.08]">
+      The IdP that <span class="mark">talks to your mesh</span>, not a SaaS seat counter.
+    </h1>
 
-      <p class="mt-5 text-[var(--muted)] md:text-[1.05rem]">
-        AAAX is a small Spring Authorization Server you clone, run, and own. It issues tokens and emits identity
-        events. SMS and email stay in <em>your</em> notification service — not behind a SaaS seat counter.
-      </p>
+    <p class="mt-5 text-[1.05rem] text-[var(--muted)]">
+      AAAX is a self-host OpenID Connect server on Spring Boot. Login stays in one jar. Lifecycle signals leave as
+      events — Kafka or webhook — so <strong class="font-medium text-[var(--ink)]">your</strong> notification service
+      still owns SMS and email.
+    </p>
 
-      <p class="mt-4 text-[var(--muted)]">
-        Built for JVM / platform teams that already run Kafka (or a webhook) and do not want private Maven or a
-        400-feature IdP console.
-      </p>
+    <div class="mt-7 flex flex-wrap gap-2.5">
+      <a class="btn btn-fill" href={GH}>Open the repo</a>
+      <a class="btn btn-ghost" href={BOOKLET}>Read the booklet</a>
+      <a class="btn btn-ghost" href={RELEASE}>v0.7.0</a>
+    </div>
 
-      <div class="mt-8 flex flex-wrap gap-3">
-        <a class="btn btn-primary" href={GH}>Repository</a>
-        <a class="btn btn-ghost" href={RELEASE}>v0.7.0 notes</a>
-        <a class="btn btn-ghost" href={BOOKLET}>booklet (docs)</a>
-      </div>
+    <!-- one picture of the idea -->
+    <section class="mt-12" aria-labelledby="idea">
+      <h2 id="idea" class="serif text-2xl md:text-[1.75rem]">One idea, three hops</h2>
+      <ol class="flow mt-5">
+        <li>
+          <span class="n">01</span>
+          <div class="b">
+            <p class="m-0 font-medium">User signs in on AAAX</p>
+            <p class="m-0 mt-1 text-sm text-[var(--muted)]">
+              Password, OTP, magic link, QR, TOTP, optional social / passkeys. Hosted
+              <span class="mono">/sign-in</span> in the same jar.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n">02</span>
+          <div class="b">
+            <p class="m-0 font-medium">Spring issues OIDC tokens</p>
+            <p class="m-0 mt-1 text-sm text-[var(--muted)]">
+              Authorization Server: discovery, JWKS, code + PKCE, refresh, client credentials. Your SPA or resource
+              server validates JWT.
+            </p>
+          </div>
+        </li>
+        <li>
+          <span class="n">03</span>
+          <div class="b">
+            <p class="m-0 font-medium">Events hit your platform</p>
+            <p class="m-0 mt-1 text-sm text-[var(--muted)]">
+              CloudEvents catalog → Kafka topic and/or HMAC webhook. Notify, audit, fraud — already your stack.
+            </p>
+          </div>
+        </li>
+      </ol>
+    </section>
 
-      <!-- run -->
-      <section class="mt-14" id="run">
-        <h2 class="text-lg font-semibold">Run it</h2>
-        <div class="panel mt-3 overflow-hidden">
-          <div class="border-b rule px-3 py-2 mono text-xs text-[var(--dim)]">shell</div>
-          <pre class="overflow-x-auto p-4 mono text-[12.5px] leading-relaxed text-[var(--ink)] md:text-[13px]"><code>git clone https://github.com/yky32/aaax.git && cd aaax
+    <hr class="rule" />
+
+    <section aria-labelledby="run">
+      <h2 id="run" class="serif text-2xl">Five minutes, no account</h2>
+      <p class="mt-2 text-[var(--muted)]">Clone. Test. Run. No private Maven.</p>
+      <div class="shell mt-4">
+        <div class="shell-bar">terminal · local</div>
+        <pre><code><span class="c"># JDK 21+</span>
+git clone https://github.com/yky32/aaax.git && cd aaax
 git checkout v0.7.0
-mvn test
-mvn spring-boot:run
-# http://localhost:8081
+mvn test && mvn spring-boot:run
 
+<span class="c"># http://localhost:8081 · demo / demo1234</span>
 ./examples/curl/get-token-and-hello.sh</code></pre>
-        </div>
-        <p class="mt-3 text-sm text-[var(--dim)]">
-          Demo user <code class="mono text-[var(--muted)]">demo / demo1234</code> · admin
-          <code class="mono text-[var(--muted)]">admin / admin12345</code> · local seeds only.
-        </p>
-      </section>
+      </div>
+    </section>
 
-      <!-- what it is -->
-      <section class="mt-14" id="what">
-        <h2 class="text-lg font-semibold">What you get</h2>
-        <ul class="mt-4 space-y-3 text-[var(--muted)]">
-          <li>
-            <strong class="font-medium text-[var(--ink)]">OIDC issuer</strong> — discovery, JWKS, auth code,
-            refresh, client credentials.
-          </li>
-          <li>
-            <strong class="font-medium text-[var(--ink)]">Same-jar UI</strong> — <code class="mono text-sm">/sign-in</code>,
-            <code class="mono text-sm">/sign-up</code>, <code class="mono text-sm">/user</code>,
-            <code class="mono text-sm">/admin</code>.
-          </li>
-          <li>
-            <strong class="font-medium text-[var(--ink)]">Login paths</strong> — password, OTP, magic link, QR,
-            TOTP, trusted device cookie, optional Google/GitHub, optional passkeys.
-          </li>
-          <li>
-            <strong class="font-medium text-[var(--ink)]">Identity Event Bus</strong> — CloudEvents catalog v1.0
-            to Kafka and/or HMAC webhook. You keep Twilio (or whoever) outside the IdP.
-          </li>
-          <li>
-            <strong class="font-medium text-[var(--ink)]">Readable layout</strong> —
-            <code class="mono text-sm">endpoint/</code> · <code class="mono text-sm">usecase/</code> ·
-            <code class="mono text-sm">entity/po|dto</code> · no private <code class="mono text-sm">app-core</code>.
-          </li>
-        </ul>
-      </section>
+    <section class="mt-12" aria-labelledby="fit">
+      <h2 id="fit" class="serif text-2xl">Built for this desk</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <article class="card">
+          <h3>You already have a mesh</h3>
+          <p>Kafka / notify service exists. You refuse Twilio locked inside the IdP.</p>
+        </article>
+        <article class="card">
+          <h3>You read Spring code</h3>
+          <p>
+            <span class="mono text-[0.8rem]">endpoint/</span> ·
+            <span class="mono text-[0.8rem]">usecase/</span> ·
+            <span class="mono text-[0.8rem]">entity/</span> — layer-first, qs-style neat.
+          </p>
+        </article>
+        <article class="card">
+          <h3>You want lean OIDC</h3>
+          <p>Not a 400-feature console. One <span class="mono text-[0.8rem]">application.yml</span>, Helm env for prod.</p>
+        </article>
+        <article class="card">
+          <h3>You are fine saying no</h3>
+          <p>Not full Keycloak. Not Clerk UI kit. Orgs / SAML IdP wait until someone actually needs them.</p>
+        </article>
+      </div>
+    </section>
 
-      <!-- bus -->
-      <section class="mt-14" id="bus">
-        <h2 class="text-lg font-semibold">Why the event bus matters</h2>
-        <p class="mt-3 text-[var(--muted)]">
-          Most IdPs stop at “user is logged in.” Platform teams still need to fire SMS, email, audit, fraud hooks.
-          AAAX emits the signal; your existing mesh does delivery.
-        </p>
-        <div class="panel mt-4 p-4 mono text-sm leading-relaxed text-[var(--muted)]">
-          <div>login / mfa / otp.dispatch / client.*</div>
-          <div class="mt-2 text-[var(--dim)]">→ topic aaax.identity.events</div>
-          <div class="text-[var(--dim)]">→ or POST webhook + X-AAAX-Signature</div>
-          <div class="mt-2 text-[var(--ink)]">→ your notification-service</div>
-        </div>
-        <p class="mt-3 text-sm text-[var(--dim)]">
-          Full compose: Postgres + Redis + Kafka + sample sinks in
-          <a class="link" href={MESH}>examples/compose-mesh</a>.
-        </p>
-      </section>
-
-      <!-- not -->
-      <section class="mt-14" id="not">
-        <h2 class="text-lg font-semibold">What it is not</h2>
-        <ul class="mt-4 list-disc space-y-2 pl-5 text-[var(--muted)]">
-          <li>Not a Keycloak replacement for every enterprise protocol and LDAP tree.</li>
-          <li>Not Clerk — no hosted component store, no seat pricing story.</li>
-          <li>Not multi-tenant orgs / SAML IdP yet. Those are explicit later gates.</li>
-        </ul>
-        <p class="mt-4 text-[var(--muted)]">
-          If you need the kitchen sink, use Keycloak. If you need a thin Spring issuer that talks to your bus,
-          start here.
-        </p>
-      </section>
-
-      <!-- spa -->
-      <section class="mt-14" id="spa">
-        <h2 class="text-lg font-semibold">Browser clients</h2>
-        <p class="mt-3 text-[var(--muted)]">
-          Public client <code class="mono text-sm">aaax-spa</code> (PKCE, no secret) plus a small helper under
-          <a class="link" href={SPA}>examples/spa-pkce</a>. Enough to wire a BFF or SPA without claiming a full
-          React SDK.
-        </p>
-      </section>
-
-      <!-- docs -->
-      <section class="mt-14 border-t rule pt-10" id="docs">
-        <h2 class="text-lg font-semibold">Docs</h2>
-        <p class="mt-3 text-[var(--muted)]">
-          One booklet, not a doc farm:
-          <a class="link" href={BOOKLET}>docs/booklet.md</a>
-          — architecture, event catalog, code map, deploy env knobs.
-        </p>
-        <p class="mt-4 text-sm text-[var(--dim)]">
-          Config is a single <code class="mono">application.yml</code>; production values come from Helm/env, not
-          profile YAML piles.
-        </p>
-      </section>
-    </main>
-
-    <footer class="mt-16 border-t rule pt-6 text-sm text-[var(--dim)]">
-      <p>
-        Maintained by
-        <a class="link" href="https://github.com/yky32">yky32</a>.
-        Site is static Astro. Product is Java.
+    <section class="mt-12" aria-labelledby="line">
+      <h2 id="line" class="serif text-2xl">The line we keep repeating</h2>
+      <blockquote
+        class="serif m-0 mt-4 border-l-[3px] border-[var(--accent)] pl-4 text-2xl leading-snug text-[var(--ink)] md:text-[1.85rem]"
+      >
+        AAAX authenticates.<br />
+        Your mesh notifies.
+      </blockquote>
+      <p class="mt-4 text-sm text-[var(--muted)]">
+        Full bus path:
+        <a class="underline underline-offset-3" href={MESH}>examples/compose-mesh</a>
+        · deep dive:
+        <a class="underline underline-offset-3" href={BOOKLET}>docs/booklet.md</a>
       </p>
-      <p class="mt-2">Not affiliated with Keycloak, Clerk, or Logto.</p>
+    </section>
+
+    <footer class="site">
+      <p>
+        AAAX by <a href="https://github.com/yky32">yky32</a> · site is quiet on purpose · product is the jar
+      </p>
     </footer>
   </div>
 </Layout>
