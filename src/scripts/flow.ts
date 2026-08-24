@@ -13,66 +13,17 @@ type NodeDef = {
   y: number;
   z: number;
   role: Role;
-  /** label screen offset in local 3D space */
-  lx: number;
-  ly: number;
-  lz: number;
 };
 
-/** Wider spacing so cards never sit on top of each other */
+/**
+ * Compact diamond layout — all labels sit ABOVE nodes (CSS2D),
+ * so nothing clips at left/right stage edges.
+ */
 const NODES: NodeDef[] = [
-  {
-    id: "user",
-    step: "1",
-    label: "Browser",
-    sub: "sign-in · PKCE",
-    x: -4.1,
-    y: 0.85,
-    z: 0.3,
-    role: "edge",
-    lx: -1.55,
-    ly: 0.55,
-    lz: 0.9,
-  },
-  {
-    id: "aaax",
-    step: "2",
-    label: "AAAX",
-    sub: "Spring Boot AS",
-    x: 0,
-    y: 1.55,
-    z: -0.15,
-    role: "core",
-    lx: 0,
-    ly: 1.55,
-    lz: 0,
-  },
-  {
-    id: "app",
-    step: "3",
-    label: "Your app",
-    sub: "JWT · API",
-    x: 4.1,
-    y: 0.85,
-    z: 0.3,
-    role: "edge",
-    lx: 1.55,
-    ly: 0.55,
-    lz: 0.9,
-  },
-  {
-    id: "mesh",
-    step: "4",
-    label: "Your mesh",
-    sub: "Kafka · webhook",
-    x: 0,
-    y: -2.15,
-    z: 0.9,
-    role: "out",
-    lx: 0,
-    ly: -1.15,
-    lz: 0.4,
-  },
+  { id: "user", step: "1", label: "Browser", sub: "sign-in · PKCE", x: -2.65, y: 0.55, z: 0.15, role: "edge" },
+  { id: "aaax", step: "2", label: "AAAX", sub: "Spring Boot AS", x: 0, y: 1.25, z: 0, role: "core" },
+  { id: "app", step: "3", label: "Your app", sub: "JWT · API", x: 2.65, y: 0.55, z: 0.15, role: "edge" },
+  { id: "mesh", step: "4", label: "Your mesh", sub: "Kafka · webhook", x: 0, y: -1.45, z: 0.35, role: "out" },
 ];
 
 type EdgeDef = {
@@ -80,15 +31,14 @@ type EdgeDef = {
   to: string;
   kind: "login" | "token" | "event";
   label: string;
-  /** where along curve 0–1 to put the badge */
   labelT: number;
   lift: number;
 };
 
 const EDGES: EdgeDef[] = [
-  { from: "user", to: "aaax", kind: "login", label: "login", labelT: 0.42, lift: 0.55 },
-  { from: "aaax", to: "app", kind: "token", label: "OIDC JWT", labelT: 0.58, lift: 0.55 },
-  { from: "aaax", to: "mesh", kind: "event", label: "events", labelT: 0.55, lift: 0.25 },
+  { from: "user", to: "aaax", kind: "login", label: "login", labelT: 0.45, lift: 0.45 },
+  { from: "aaax", to: "app", kind: "token", label: "OIDC JWT", labelT: 0.55, lift: 0.45 },
+  { from: "aaax", to: "mesh", kind: "event", label: "events", labelT: 0.48, lift: 0.2 },
 ];
 
 const COPY: Record<string, string> = {
@@ -117,6 +67,7 @@ function disposeObject(obj: THREE.Object3D) {
   });
 }
 
+/** Label always above the box, centered — stays inside the frame */
 function makeNodeLabel(n: NodeDef) {
   const el = document.createElement("div");
   el.className = `flow-tag flow-tag--${n.role}`;
@@ -128,8 +79,9 @@ function makeNodeLabel(n: NodeDef) {
     </span>
   `;
   const obj = new CSS2DObject(el);
-  obj.position.set(n.lx, n.ly, n.lz);
-  obj.center.set(n.role === "edge" && n.x < 0 ? 1 : n.role === "edge" && n.x > 0 ? 0 : 0.5, 0.5);
+  // anchor at bottom-center of the HTML box → sits cleanly on top of mesh
+  obj.center.set(0.5, 1);
+  obj.position.set(0, 0.95, 0);
   return obj;
 }
 
@@ -137,15 +89,17 @@ function makeEdgeBadge(text: string, kind: EdgeDef["kind"]) {
   const el = document.createElement("div");
   el.className = `flow-badge flow-badge--${kind}`;
   el.textContent = text;
-  return new CSS2DObject(el);
+  const obj = new CSS2DObject(el);
+  obj.center.set(0.5, 0.5);
+  return obj;
 }
 
 function nodeBody(role: Role) {
   const g = new THREE.Group();
   const isCore = role === "core";
-  const w = isCore ? 1.35 : 1.15;
-  const h = isCore ? 0.95 : 0.82;
-  const d = isCore ? 1.05 : 0.88;
+  const w = isCore ? 1.2 : 1.05;
+  const h = isCore ? 0.88 : 0.78;
+  const d = isCore ? 0.98 : 0.82;
 
   const mesh = new THREE.Mesh(
     new RoundedBoxGeometry(w, h, d, 4, 0.1),
@@ -160,16 +114,15 @@ function nodeBody(role: Role) {
   g.add(mesh);
 
   const cap = new THREE.Mesh(
-    new RoundedBoxGeometry(w * 0.9, 0.07, d * 0.86, 2, 0.03),
+    new RoundedBoxGeometry(w * 0.9, 0.06, d * 0.86, 2, 0.03),
     new THREE.MeshStandardMaterial({ color: C.paper, roughness: 0.88, metalness: 0 }),
   );
   cap.position.y = h / 2 + 0.02;
-  cap.castShadow = true;
   g.add(cap);
 
   if (isCore) {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(0.95, 0.025, 10, 40),
+      new THREE.TorusGeometry(0.85, 0.022, 10, 40),
       new THREE.MeshStandardMaterial({
         color: C.accentSoft,
         emissive: C.accent,
@@ -178,11 +131,11 @@ function nodeBody(role: Role) {
       }),
     );
     ring.rotation.x = Math.PI / 2;
-    ring.position.y = -0.12;
+    ring.position.y = -0.1;
     g.add(ring);
   }
 
-  return { group: g, hit: mesh, height: h };
+  return { group: g, hit: mesh };
 }
 
 export function initAaaxFlow(root: HTMLElement) {
@@ -190,7 +143,6 @@ export function initAaaxFlow(root: HTMLElement) {
   const hint = root.querySelector(".hint") as HTMLElement | null;
   if (!canvas) return () => {};
 
-  // clear any previous CSS2D layer
   root.querySelectorAll(".flow-css2d").forEach((n) => n.remove());
 
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
@@ -201,49 +153,52 @@ export function initAaaxFlow(root: HTMLElement) {
 
   const labelRenderer = new CSS2DRenderer();
   labelRenderer.domElement.className = "flow-css2d";
-  labelRenderer.domElement.style.position = "absolute";
-  labelRenderer.domElement.style.inset = "0";
-  labelRenderer.domElement.style.pointerEvents = "none";
+  Object.assign(labelRenderer.domElement.style, {
+    position: "absolute",
+    inset: "0",
+    pointerEvents: "none",
+    overflow: "visible",
+  });
   root.appendChild(labelRenderer.domElement);
 
   const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 80);
+  const camera = new THREE.PerspectiveCamera(34, 1, 0.1, 80);
 
-  // Prefer a stable diagram angle (less spin → less overlap)
-  let distance = 11.2;
-  let rotY = 0.38;
-  let rotX = 0.4;
+  // Frontal-ish diagram angle — readable, labels stay on-screen
+  let distance = 9.6;
+  let rotY = 0.28;
+  let rotX = 0.36;
   let targetRotY = rotY;
   let targetRotX = rotX;
 
-  scene.add(new THREE.AmbientLight(0xfff8ef, 1));
-  const key = new THREE.DirectionalLight(0xffffff, 1.0);
-  key.position.set(4, 9, 5);
+  scene.add(new THREE.AmbientLight(0xfff8ef, 1.05));
+  const key = new THREE.DirectionalLight(0xffffff, 0.95);
+  key.position.set(3.5, 8, 5);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
-  key.shadow.camera.left = -10;
-  key.shadow.camera.right = 10;
-  key.shadow.camera.top = 10;
-  key.shadow.camera.bottom = -10;
+  key.shadow.camera.left = -8;
+  key.shadow.camera.right = 8;
+  key.shadow.camera.top = 8;
+  key.shadow.camera.bottom = -8;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xc45c26, 0.28);
-  rim.position.set(-5, 3, -2);
+  const rim = new THREE.DirectionalLight(0xc45c26, 0.25);
+  rim.position.set(-4, 3, -2);
   scene.add(rim);
   scene.add(new THREE.HemisphereLight(0xfffaf3, 0xd9d0c0, 0.4));
 
   const plate = new THREE.Mesh(
-    new RoundedBoxGeometry(13, 0.1, 8.5, 2, 0.06),
+    new RoundedBoxGeometry(10.5, 0.1, 7.2, 2, 0.06),
     new THREE.MeshStandardMaterial({ color: C.paperDeep, roughness: 0.93, metalness: 0 }),
   );
-  plate.position.y = -2.85;
+  plate.position.y = -2.35;
   plate.receiveShadow = true;
   scene.add(plate);
 
-  const grid = new THREE.GridHelper(12, 12, 0xd9d2c3, 0xe8e1d4);
-  grid.position.y = -2.78;
+  const grid = new THREE.GridHelper(10, 10, 0xd9d2c3, 0xe8e1d4);
+  grid.position.y = -2.28;
   const gm = grid.material as THREE.Material;
   gm.transparent = true;
-  (gm as THREE.Material & { opacity: number }).opacity = 0.45;
+  (gm as THREE.Material & { opacity: number }).opacity = 0.4;
   scene.add(grid);
 
   const world = new THREE.Group();
@@ -270,7 +225,7 @@ export function initAaaxFlow(root: HTMLElement) {
 
   const anchor = (id: string) => {
     const n = NODES.find((x) => x.id === id)!;
-    return new THREE.Vector3(n.x, n.y + 0.1, n.z);
+    return new THREE.Vector3(n.x, n.y + 0.08, n.z);
   };
 
   for (const e of EDGES) {
@@ -278,23 +233,21 @@ export function initAaaxFlow(root: HTMLElement) {
     const b = anchor(e.to);
     const mid = a.clone().lerp(b, 0.5);
     if (e.kind === "event") {
-      mid.y = (a.y + b.y) * 0.5 + 0.2;
-      mid.z += 0.5;
+      mid.y = (a.y + b.y) * 0.5;
+      mid.z += 0.35;
     } else {
       mid.y = Math.max(a.y, b.y) + e.lift;
     }
-    const c1 = a.clone().lerp(mid, 0.55);
-    const c2 = b.clone().lerp(mid, 0.55);
-    const curve = new THREE.CubicBezierCurve3(a, c1, c2, b);
-
+    const curve = new THREE.CubicBezierCurve3(a, a.clone().lerp(mid, 0.55), b.clone().lerp(mid, 0.55), b);
     const color = e.kind === "event" ? C.accent : C.ink;
+
     world.add(
       new THREE.Mesh(
-        new THREE.TubeGeometry(curve, 56, e.kind === "event" ? 0.032 : 0.026, 10, false),
+        new THREE.TubeGeometry(curve, 48, e.kind === "event" ? 0.03 : 0.024, 10, false),
         new THREE.MeshStandardMaterial({
           color,
           roughness: 0.35,
-          metalness: 0.12,
+          metalness: 0.1,
           emissive: color,
           emissiveIntensity: e.kind === "event" ? 0.1 : 0.03,
         }),
@@ -302,28 +255,27 @@ export function initAaaxFlow(root: HTMLElement) {
     );
     world.add(
       new THREE.Mesh(
-        new THREE.TubeGeometry(curve, 40, 0.06, 8, false),
+        new THREE.TubeGeometry(curve, 32, 0.055, 8, false),
         new THREE.MeshBasicMaterial({
           color: e.kind === "event" ? C.accentSoft : 0x9a9284,
           transparent: true,
-          opacity: 0.16,
+          opacity: 0.14,
           depthWrite: false,
         }),
       ),
     );
 
     const badge = makeEdgeBadge(e.label, e.kind);
-    badge.position.copy(curve.getPoint(e.labelT));
-    badge.position.y += 0.22;
-    // nudge badges apart
-    if (e.kind === "login") badge.position.x -= 0.15;
-    if (e.kind === "token") badge.position.x += 0.15;
-    if (e.kind === "event") badge.position.x += 0.85;
+    const bp = curve.getPoint(e.labelT);
+    badge.position.copy(bp);
+    // keep badges slightly above the tube, inward (not past stage edges)
+    badge.position.y += 0.28;
+    if (e.kind === "event") badge.position.x = 0.55;
     world.add(badge);
 
     for (let i = 0; i < 2; i++) {
       const pulse = new THREE.Mesh(
-        new THREE.SphereGeometry(0.07, 14, 14),
+        new THREE.SphereGeometry(0.065, 14, 14),
         new THREE.MeshStandardMaterial({
           color,
           emissive: color,
@@ -388,11 +340,11 @@ export function initAaaxFlow(root: HTMLElement) {
   });
   canvas.addEventListener("pointermove", (ev) => {
     if (!dragging) return;
-    targetRotY += (ev.clientX - lastX) * 0.004;
-    targetRotX += (ev.clientY - lastY) * 0.0032;
-    targetRotX = THREE.MathUtils.clamp(targetRotX, 0.22, 0.55);
-    // limit yaw so diagram stays readable
-    targetRotY = THREE.MathUtils.clamp(targetRotY, -0.15, 0.95);
+    targetRotY += (ev.clientX - lastX) * 0.0035;
+    targetRotX += (ev.clientY - lastY) * 0.003;
+    // tight clamp — keep diagram readable, labels on canvas
+    targetRotY = THREE.MathUtils.clamp(targetRotY, 0.05, 0.55);
+    targetRotX = THREE.MathUtils.clamp(targetRotX, 0.25, 0.48);
     lastX = ev.clientX;
     lastY = ev.clientY;
   });
@@ -409,7 +361,7 @@ export function initAaaxFlow(root: HTMLElement) {
     "wheel",
     (ev) => {
       ev.preventDefault();
-      distance = THREE.MathUtils.clamp(distance + ev.deltaY * 0.008, 8, 14);
+      distance = THREE.MathUtils.clamp(distance + ev.deltaY * 0.007, 8, 12);
     },
     { passive: false },
   );
@@ -423,22 +375,21 @@ export function initAaaxFlow(root: HTMLElement) {
   const animate = () => {
     raf = requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
-    rotY += (targetRotY - rotY) * 0.1;
-    rotX += (targetRotX - rotX) * 0.1;
-    // no auto-spin (was a big source of label chaos)
+    rotY += (targetRotY - rotY) * 0.12;
+    rotX += (targetRotX - rotX) * 0.12;
 
     const cy = Math.cos(rotX);
     camera.position.set(
       Math.sin(rotY) * distance * cy,
-      2.6 + Math.sin(rotX) * distance * 0.5,
+      2.35 + Math.sin(rotX) * distance * 0.42,
       Math.cos(rotY) * distance * cy,
     );
-    camera.lookAt(0, 0.05, 0.15);
+    camera.lookAt(0, 0.15, 0.1);
 
-    // tiny bob only on boxes — labels stay parented, small motion OK
+    // no bob — stable labels
     for (const n of NODES) {
       const entry = nodeMap.get(n.id);
-      if (entry) entry.root.position.y = entry.baseY + Math.sin(t * 0.9 + n.x * 0.2) * 0.025;
+      if (entry) entry.root.position.y = entry.baseY;
     }
 
     for (let i = 0; i < pulses.length; i++) {

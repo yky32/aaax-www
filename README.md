@@ -1,8 +1,12 @@
 # aaax-www
 
-Product landing for **[AAAX](https://github.com/yky32/aaax)** — engineer-facing OIDC + Identity Event Bus.
+Product site for **[AAAX](https://github.com/yky32/aaax)**.
 
-**Stack:** [Astro](https://astro.build) 7 + Tailwind CSS 4 (static, fast, marketing-native).
+### Live
+
+**https://aaax-www.vercel.app/**
+
+Astro 7 + Tailwind 4 · Vercel (`yky32s-projects/aaax-www`) · auto-deploy from `main`.
 
 ## Dev
 
@@ -18,7 +22,7 @@ npm run build
 npm run preview
 ```
 
-Output: `dist/` (static). Deploy on Vercel, Cloudflare Pages, or any static host.
+Output: `dist/`.
 
 ## Content
 
