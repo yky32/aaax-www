@@ -1,5 +1,8 @@
 import * as THREE from "three";
 import { RoundedBoxGeometry } from "three/addons/geometries/RoundedBoxGeometry.js";
+import { CSS2DObject, CSS2DRenderer } from "three/addons/renderers/CSS2DRenderer.js";
+
+type Role = "edge" | "core" | "out";
 
 type NodeDef = {
   id: string;
@@ -9,14 +12,67 @@ type NodeDef = {
   x: number;
   y: number;
   z: number;
-  role: "edge" | "core" | "out";
+  role: Role;
+  /** label screen offset in local 3D space */
+  lx: number;
+  ly: number;
+  lz: number;
 };
 
+/** Wider spacing so cards never sit on top of each other */
 const NODES: NodeDef[] = [
-  { id: "user", step: "1", label: "Browser", sub: "sign-in · PKCE", x: -3.4, y: 0.9, z: 0.2, role: "edge" },
-  { id: "aaax", step: "2", label: "AAAX", sub: "Spring Boot AS", x: 0, y: 1.15, z: 0, role: "core" },
-  { id: "app", step: "3", label: "Your app", sub: "JWT · API", x: 3.4, y: 0.9, z: 0.2, role: "edge" },
-  { id: "mesh", step: "⚡", label: "Your mesh", sub: "Kafka · webhook", x: 0, y: -1.55, z: 0.55, role: "out" },
+  {
+    id: "user",
+    step: "1",
+    label: "Browser",
+    sub: "sign-in · PKCE",
+    x: -4.1,
+    y: 0.85,
+    z: 0.3,
+    role: "edge",
+    lx: -1.55,
+    ly: 0.55,
+    lz: 0.9,
+  },
+  {
+    id: "aaax",
+    step: "2",
+    label: "AAAX",
+    sub: "Spring Boot AS",
+    x: 0,
+    y: 1.55,
+    z: -0.15,
+    role: "core",
+    lx: 0,
+    ly: 1.55,
+    lz: 0,
+  },
+  {
+    id: "app",
+    step: "3",
+    label: "Your app",
+    sub: "JWT · API",
+    x: 4.1,
+    y: 0.85,
+    z: 0.3,
+    role: "edge",
+    lx: 1.55,
+    ly: 0.55,
+    lz: 0.9,
+  },
+  {
+    id: "mesh",
+    step: "4",
+    label: "Your mesh",
+    sub: "Kafka · webhook",
+    x: 0,
+    y: -2.15,
+    z: 0.9,
+    role: "out",
+    lx: 0,
+    ly: -1.15,
+    lz: 0.4,
+  },
 ];
 
 type EdgeDef = {
@@ -24,183 +80,105 @@ type EdgeDef = {
   to: string;
   kind: "login" | "token" | "event";
   label: string;
-  midY?: number;
+  /** where along curve 0–1 to put the badge */
+  labelT: number;
+  lift: number;
 };
 
 const EDGES: EdgeDef[] = [
-  { from: "user", to: "aaax", kind: "login", label: "login", midY: 1.55 },
-  { from: "aaax", to: "app", kind: "token", label: "OIDC JWT", midY: 1.55 },
-  { from: "aaax", to: "mesh", kind: "event", label: "events", midY: -0.15 },
+  { from: "user", to: "aaax", kind: "login", label: "login", labelT: 0.42, lift: 0.55 },
+  { from: "aaax", to: "app", kind: "token", label: "OIDC JWT", labelT: 0.58, lift: 0.55 },
+  { from: "aaax", to: "mesh", kind: "event", label: "events", labelT: 0.55, lift: 0.25 },
 ];
 
 const COPY: Record<string, string> = {
-  user: "User opens /sign-in or starts OAuth (PKCE). Session begins in the browser.",
-  aaax: "Spring Authorization Server — password/OTP/MFA, issues tokens, serves JWKS.",
-  app: "Your resource server validates the JWT. Business logic stays in your app.",
-  mesh: "Identity Event Bus fires CloudEvents. Your notify stack sends SMS/email.",
-  default: "Drag to look around · scroll zoom · click a node",
+  user: "User opens /sign-in or starts OAuth (PKCE).",
+  aaax: "Spring Authorization Server — session, MFA, tokens, JWKS.",
+  app: "Your API validates the JWT. Business logic stays here.",
+  mesh: "CloudEvents → Kafka or HMAC webhook. You send SMS/email.",
+  default: "Drag to look · scroll zoom · click a node",
 };
 
 const C = {
   ink: 0x1a1814,
   paper: 0xfffcf7,
-  paperDeep: 0xf0ebe1,
-  cream: 0xf6f3ec,
+  paperDeep: 0xefe8db,
   accent: 0xc45c26,
   accentSoft: 0xe8a57a,
-  line: 0xc9c0b0,
-  muted: 0x6b6560,
 };
 
 function disposeObject(obj: THREE.Object3D) {
   obj.traverse((child) => {
     const m = child as THREE.Mesh;
     if (m.geometry) m.geometry.dispose();
-    const mat = m.material;
+    const mat = m.material as THREE.Material | THREE.Material[] | undefined;
     if (!mat) return;
-    const mats = Array.isArray(mat) ? mat : [mat];
-    for (const x of mats) {
-      const map = (x as THREE.MeshStandardMaterial).map;
-      if (map) map.dispose();
-      x.dispose();
-    }
+    for (const x of Array.isArray(mat) ? mat : [mat]) x.dispose();
   });
 }
 
-function makeCardLabel(step: string, title: string, sub: string, accent: boolean) {
-  const w = 640;
-  const h = 280;
-  const canvas = document.createElement("canvas");
-  canvas.width = w;
-  canvas.height = h;
-  const ctx = canvas.getContext("2d")!;
-
-  // soft shadow plate
-  ctx.fillStyle = "rgba(26,24,20,0.08)";
-  roundRect(ctx, 28, 36, w - 56, h - 64, 28);
-  ctx.fill();
-
-  // card
-  ctx.fillStyle = accent ? "#c45c26" : "#fffcf7";
-  roundRect(ctx, 24, 24, w - 48, h - 56, 26);
-  ctx.fill();
-  ctx.strokeStyle = accent ? "#a34a1c" : "#ddd6c8";
-  ctx.lineWidth = 3;
-  roundRect(ctx, 24, 24, w - 48, h - 56, 26);
-  ctx.stroke();
-
-  // step chip
-  ctx.fillStyle = accent ? "rgba(255,250,245,0.2)" : "#f0ebe1";
-  roundRect(ctx, 48, 52, 72, 48, 14);
-  ctx.fill();
-  ctx.fillStyle = accent ? "#fffaf5" : "#c45c26";
-  ctx.font = "600 28px IBM Plex Mono, ui-monospace, monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(step, 84, 76);
-
-  ctx.textAlign = "left";
-  ctx.fillStyle = accent ? "#fffaf5" : "#1a1814";
-  ctx.font = "600 44px IBM Plex Sans, system-ui, sans-serif";
-  ctx.fillText(title, 140, 78);
-
-  ctx.fillStyle = accent ? "rgba(255,250,245,0.85)" : "#6b6560";
-  ctx.font = "500 28px IBM Plex Mono, ui-monospace, monospace";
-  ctx.fillText(sub, 52, 160);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  tex.anisotropy = 8;
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true, depthWrite: false }),
-  );
-  sprite.scale.set(2.55, 1.12, 1);
-  return sprite;
+function makeNodeLabel(n: NodeDef) {
+  const el = document.createElement("div");
+  el.className = `flow-tag flow-tag--${n.role}`;
+  el.innerHTML = `
+    <span class="flow-tag__step">${n.step}</span>
+    <span class="flow-tag__body">
+      <span class="flow-tag__title">${n.label}</span>
+      <span class="flow-tag__sub">${n.sub}</span>
+    </span>
+  `;
+  const obj = new CSS2DObject(el);
+  obj.position.set(n.lx, n.ly, n.lz);
+  obj.center.set(n.role === "edge" && n.x < 0 ? 1 : n.role === "edge" && n.x > 0 ? 0 : 0.5, 0.5);
+  return obj;
 }
 
-function makeEdgeLabel(text: string, kind: EdgeDef["kind"]) {
-  const canvas = document.createElement("canvas");
-  canvas.width = 320;
-  canvas.height = 96;
-  const ctx = canvas.getContext("2d")!;
-  const bg = kind === "event" ? "#c45c26" : "#1a1814";
-  ctx.fillStyle = bg;
-  roundRect(ctx, 16, 20, 288, 56, 18);
-  ctx.fill();
-  ctx.fillStyle = "#fffaf5";
-  ctx.font = "600 26px IBM Plex Mono, ui-monospace, monospace";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(text, 160, 48);
-
-  const tex = new THREE.CanvasTexture(canvas);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }),
-  );
-  sprite.scale.set(1.35, 0.4, 1);
-  return sprite;
+function makeEdgeBadge(text: string, kind: EdgeDef["kind"]) {
+  const el = document.createElement("div");
+  el.className = `flow-badge flow-badge--${kind}`;
+  el.textContent = text;
+  return new CSS2DObject(el);
 }
 
-function roundRect(
-  ctx: CanvasRenderingContext2D,
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number,
-) {
-  const rr = Math.min(r, w / 2, h / 2);
-  ctx.beginPath();
-  ctx.moveTo(x + rr, y);
-  ctx.arcTo(x + w, y, x + w, y + h, rr);
-  ctx.arcTo(x + w, y + h, x, y + h, rr);
-  ctx.arcTo(x, y + h, x, y, rr);
-  ctx.arcTo(x, y, x + w, y, rr);
-  ctx.closePath();
-}
-
-function nodeBody(role: NodeDef["role"]) {
+function nodeBody(role: Role) {
   const g = new THREE.Group();
   const isCore = role === "core";
-  const isOut = role === "out";
+  const w = isCore ? 1.35 : 1.15;
+  const h = isCore ? 0.95 : 0.82;
+  const d = isCore ? 1.05 : 0.88;
 
-  const w = isCore ? 1.55 : 1.35;
-  const h = isCore ? 1.05 : 0.9;
-  const d = isCore ? 1.15 : 0.95;
-
-  const geo = new RoundedBoxGeometry(w, h, d, 4, 0.12);
-  const mat = new THREE.MeshStandardMaterial({
-    color: isCore ? C.accent : isOut ? 0x2a261f : C.ink,
-    roughness: isCore ? 0.42 : 0.55,
-    metalness: isCore ? 0.12 : 0.04,
-  });
-  const mesh = new THREE.Mesh(geo, mat);
+  const mesh = new THREE.Mesh(
+    new RoundedBoxGeometry(w, h, d, 4, 0.1),
+    new THREE.MeshStandardMaterial({
+      color: isCore ? C.accent : role === "out" ? 0x2a261f : C.ink,
+      roughness: isCore ? 0.4 : 0.55,
+      metalness: isCore ? 0.1 : 0.03,
+    }),
+  );
   mesh.castShadow = true;
   mesh.receiveShadow = true;
   g.add(mesh);
 
-  // paper cap
   const cap = new THREE.Mesh(
-    new RoundedBoxGeometry(w * 0.92, 0.08, d * 0.88, 2, 0.04),
-    new THREE.MeshStandardMaterial({ color: C.paper, roughness: 0.85, metalness: 0 }),
+    new RoundedBoxGeometry(w * 0.9, 0.07, d * 0.86, 2, 0.03),
+    new THREE.MeshStandardMaterial({ color: C.paper, roughness: 0.88, metalness: 0 }),
   );
   cap.position.y = h / 2 + 0.02;
+  cap.castShadow = true;
   g.add(cap);
 
-  // ring for core
   if (isCore) {
     const ring = new THREE.Mesh(
-      new THREE.TorusGeometry(1.05, 0.03, 12, 48),
+      new THREE.TorusGeometry(0.95, 0.025, 10, 40),
       new THREE.MeshStandardMaterial({
         color: C.accentSoft,
         emissive: C.accent,
-        emissiveIntensity: 0.25,
-        roughness: 0.35,
+        emissiveIntensity: 0.2,
+        roughness: 0.4,
       }),
     );
     ring.rotation.x = Math.PI / 2;
-    ring.position.y = -0.15;
+    ring.position.y = -0.12;
     g.add(ring);
   }
 
@@ -212,161 +190,152 @@ export function initAaaxFlow(root: HTMLElement) {
   const hint = root.querySelector(".hint") as HTMLElement | null;
   if (!canvas) return () => {};
 
+  // clear any previous CSS2D layer
+  root.querySelectorAll(".flow-css2d").forEach((n) => n.remove());
+
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  const scene = new THREE.Scene();
-  scene.fog = new THREE.Fog(0xf6f3ec, 10, 22);
+  const labelRenderer = new CSS2DRenderer();
+  labelRenderer.domElement.className = "flow-css2d";
+  labelRenderer.domElement.style.position = "absolute";
+  labelRenderer.domElement.style.inset = "0";
+  labelRenderer.domElement.style.pointerEvents = "none";
+  root.appendChild(labelRenderer.domElement);
 
-  const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 80);
-  let distance = 9.2;
-  let rotY = 0.42;
-  let rotX = 0.32;
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(36, 1, 0.1, 80);
+
+  // Prefer a stable diagram angle (less spin → less overlap)
+  let distance = 11.2;
+  let rotY = 0.38;
+  let rotX = 0.4;
   let targetRotY = rotY;
   let targetRotX = rotX;
 
-  // lights
-  scene.add(new THREE.AmbientLight(0xfff8ef, 0.95));
-  const key = new THREE.DirectionalLight(0xffffff, 1.05);
-  key.position.set(5, 8, 4);
+  scene.add(new THREE.AmbientLight(0xfff8ef, 1));
+  const key = new THREE.DirectionalLight(0xffffff, 1.0);
+  key.position.set(4, 9, 5);
   key.castShadow = true;
   key.shadow.mapSize.set(1024, 1024);
-  key.shadow.camera.near = 1;
-  key.shadow.camera.far = 24;
-  key.shadow.camera.left = -8;
-  key.shadow.camera.right = 8;
-  key.shadow.camera.top = 8;
-  key.shadow.camera.bottom = -8;
+  key.shadow.camera.left = -10;
+  key.shadow.camera.right = 10;
+  key.shadow.camera.top = 10;
+  key.shadow.camera.bottom = -10;
   scene.add(key);
-  const rim = new THREE.DirectionalLight(0xc45c26, 0.35);
-  rim.position.set(-4, 3, -2);
+  const rim = new THREE.DirectionalLight(0xc45c26, 0.28);
+  rim.position.set(-5, 3, -2);
   scene.add(rim);
-  const hemi = new THREE.HemisphereLight(0xfffaf3, 0xd9d0c0, 0.45);
-  scene.add(hemi);
+  scene.add(new THREE.HemisphereLight(0xfffaf3, 0xd9d0c0, 0.4));
 
-  // stage plate
   const plate = new THREE.Mesh(
-    new RoundedBoxGeometry(11.5, 0.12, 7.2, 2, 0.08),
-    new THREE.MeshStandardMaterial({ color: C.paperDeep, roughness: 0.92, metalness: 0 }),
+    new RoundedBoxGeometry(13, 0.1, 8.5, 2, 0.06),
+    new THREE.MeshStandardMaterial({ color: C.paperDeep, roughness: 0.93, metalness: 0 }),
   );
-  plate.position.y = -2.15;
+  plate.position.y = -2.85;
   plate.receiveShadow = true;
   scene.add(plate);
 
-  const grid = new THREE.GridHelper(10, 10, 0xd9d2c3, 0xe5dfd3);
-  grid.position.y = -2.08;
-  const gMat = grid.material as THREE.Material | THREE.Material[];
-  if (Array.isArray(gMat)) gMat.forEach((m) => ((m as THREE.Material).transparent = true));
-  else {
-    gMat.transparent = true;
-    (gMat as THREE.Material & { opacity: number }).opacity = 0.55;
-  }
+  const grid = new THREE.GridHelper(12, 12, 0xd9d2c3, 0xe8e1d4);
+  grid.position.y = -2.78;
+  const gm = grid.material as THREE.Material;
+  gm.transparent = true;
+  (gm as THREE.Material & { opacity: number }).opacity = 0.45;
   scene.add(grid);
 
   const world = new THREE.Group();
   scene.add(world);
 
-  const nodeMap = new Map<string, { root: THREE.Group; baseY: number; hit: THREE.Object3D }>();
+  const nodeMap = new Map<string, { root: THREE.Group; baseY: number }>();
 
   for (const n of NODES) {
     const rootG = new THREE.Group();
-    const { group: body, hit, height } = nodeBody(n.role);
-    hit.userData = { id: n.id };
+    const { group: body, hit } = nodeBody(n.role);
     body.traverse((c) => {
       if ((c as THREE.Mesh).isMesh) (c as THREE.Mesh).userData = { id: n.id };
     });
+    hit.userData = { id: n.id };
     rootG.add(body);
-
-    const label = makeCardLabel(n.step, n.label, n.sub, n.role === "core");
-    label.position.y = height / 2 + 0.95;
-    rootG.add(label);
-
+    rootG.add(makeNodeLabel(n));
     rootG.position.set(n.x, n.y, n.z);
     world.add(rootG);
-    nodeMap.set(n.id, { root: rootG, baseY: n.y, hit });
+    nodeMap.set(n.id, { root: rootG, baseY: n.y });
   }
 
-  type Pulse = {
-    mesh: THREE.Mesh;
-    curve: THREE.CubicBezierCurve3;
-    t: number;
-    speed: number;
-  };
+  type Pulse = { mesh: THREE.Mesh; curve: THREE.CubicBezierCurve3; speed: number; phase: number };
   const pulses: Pulse[] = [];
 
   const anchor = (id: string) => {
     const n = NODES.find((x) => x.id === id)!;
-    return new THREE.Vector3(n.x, n.y + 0.15, n.z);
+    return new THREE.Vector3(n.x, n.y + 0.1, n.z);
   };
 
   for (const e of EDGES) {
     const a = anchor(e.from);
     const b = anchor(e.to);
     const mid = a.clone().lerp(b, 0.5);
-    mid.y = e.midY ?? (a.y + b.y) / 2 + 0.6;
-    // pull event curve forward a bit
-    if (e.kind === "event") mid.z += 0.35;
-
+    if (e.kind === "event") {
+      mid.y = (a.y + b.y) * 0.5 + 0.2;
+      mid.z += 0.5;
+    } else {
+      mid.y = Math.max(a.y, b.y) + e.lift;
+    }
     const c1 = a.clone().lerp(mid, 0.55);
     const c2 = b.clone().lerp(mid, 0.55);
     const curve = new THREE.CubicBezierCurve3(a, c1, c2, b);
 
     const color = e.kind === "event" ? C.accent : C.ink;
-    const tube = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 48, e.kind === "event" ? 0.034 : 0.028, 10, false),
-      new THREE.MeshStandardMaterial({
-        color,
-        roughness: 0.35,
-        metalness: 0.15,
-        emissive: color,
-        emissiveIntensity: e.kind === "event" ? 0.12 : 0.04,
-      }),
+    world.add(
+      new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 56, e.kind === "event" ? 0.032 : 0.026, 10, false),
+        new THREE.MeshStandardMaterial({
+          color,
+          roughness: 0.35,
+          metalness: 0.12,
+          emissive: color,
+          emissiveIntensity: e.kind === "event" ? 0.1 : 0.03,
+        }),
+      ),
     );
-    tube.castShadow = true;
-    world.add(tube);
-
-    // soft outer sheath
-    const sheath = new THREE.Mesh(
-      new THREE.TubeGeometry(curve, 32, e.kind === "event" ? 0.07 : 0.055, 8, false),
-      new THREE.MeshBasicMaterial({
-        color: e.kind === "event" ? C.accentSoft : 0x8a8478,
-        transparent: true,
-        opacity: 0.18,
-        depthWrite: false,
-      }),
+    world.add(
+      new THREE.Mesh(
+        new THREE.TubeGeometry(curve, 40, 0.06, 8, false),
+        new THREE.MeshBasicMaterial({
+          color: e.kind === "event" ? C.accentSoft : 0x9a9284,
+          transparent: true,
+          opacity: 0.16,
+          depthWrite: false,
+        }),
+      ),
     );
-    world.add(sheath);
 
-    const edgeLabel = makeEdgeLabel(e.label, e.kind);
-    const lp = curve.getPoint(0.5);
-    edgeLabel.position.copy(lp);
-    edgeLabel.position.y += 0.28;
-    world.add(edgeLabel);
+    const badge = makeEdgeBadge(e.label, e.kind);
+    badge.position.copy(curve.getPoint(e.labelT));
+    badge.position.y += 0.22;
+    // nudge badges apart
+    if (e.kind === "login") badge.position.x -= 0.15;
+    if (e.kind === "token") badge.position.x += 0.15;
+    if (e.kind === "event") badge.position.x += 0.85;
+    world.add(badge);
 
-    for (let i = 0; i < (e.kind === "event" ? 2 : 2); i++) {
+    for (let i = 0; i < 2; i++) {
       const pulse = new THREE.Mesh(
-        new THREE.SphereGeometry(e.kind === "event" ? 0.09 : 0.075, 16, 16),
+        new THREE.SphereGeometry(0.07, 14, 14),
         new THREE.MeshStandardMaterial({
           color,
           emissive: color,
-          emissiveIntensity: 0.55,
+          emissiveIntensity: 0.5,
           roughness: 0.25,
         }),
       );
       world.add(pulse);
-      pulses.push({
-        mesh: pulse,
-        curve,
-        t: i * 0.5,
-        speed: e.kind === "event" ? 0.22 : 0.18,
-      });
+      pulses.push({ mesh: pulse, curve, speed: e.kind === "event" ? 0.2 : 0.16, phase: i * 0.5 });
     }
   }
 
-  // interaction
   let dragging = false;
   let downX = 0;
   let downY = 0;
@@ -389,6 +358,7 @@ export function initAaaxFlow(root: HTMLElement) {
     const w = root.clientWidth;
     const h = root.clientHeight;
     renderer.setSize(w, h, false);
+    labelRenderer.setSize(w, h);
     camera.aspect = w / Math.max(h, 1);
     camera.updateProjectionMatrix();
   };
@@ -396,17 +366,16 @@ export function initAaaxFlow(root: HTMLElement) {
 
   const raycaster = new THREE.Raycaster();
   const pointer = new THREE.Vector2();
-
   const pick = (cx: number, cy: number) => {
     const rect = canvas.getBoundingClientRect();
     pointer.x = ((cx - rect.left) / rect.width) * 2 - 1;
     pointer.y = -((cy - rect.top) / rect.height) * 2 + 1;
     raycaster.setFromCamera(pointer, camera);
-    const hits: THREE.Object3D[] = [];
+    const meshes: THREE.Object3D[] = [];
     world.traverse((o) => {
-      if ((o as THREE.Mesh).isMesh && o.userData?.id) hits.push(o);
+      if ((o as THREE.Mesh).isMesh && o.userData?.id) meshes.push(o);
     });
-    return raycaster.intersectObjects(hits, false)[0]?.object.userData?.id as string | undefined;
+    return raycaster.intersectObjects(meshes, false)[0]?.object.userData?.id as string | undefined;
   };
 
   canvas.style.cursor = "grab";
@@ -419,9 +388,11 @@ export function initAaaxFlow(root: HTMLElement) {
   });
   canvas.addEventListener("pointermove", (ev) => {
     if (!dragging) return;
-    targetRotY += (ev.clientX - lastX) * 0.0045;
-    targetRotX += (ev.clientY - lastY) * 0.0035;
-    targetRotX = THREE.MathUtils.clamp(targetRotX, 0.12, 0.55);
+    targetRotY += (ev.clientX - lastX) * 0.004;
+    targetRotX += (ev.clientY - lastY) * 0.0032;
+    targetRotX = THREE.MathUtils.clamp(targetRotX, 0.22, 0.55);
+    // limit yaw so diagram stays readable
+    targetRotY = THREE.MathUtils.clamp(targetRotY, -0.15, 0.95);
     lastX = ev.clientX;
     lastY = ev.clientY;
   });
@@ -431,16 +402,14 @@ export function initAaaxFlow(root: HTMLElement) {
     if (Math.hypot(ev.clientX - downX, ev.clientY - downY) < 8) {
       selected = pick(ev.clientX, ev.clientY) ?? null;
       setHint(selected);
-      for (const [id, n] of nodeMap) {
-        n.root.scale.setScalar(id === selected ? 1.07 : 1);
-      }
+      for (const [id, n] of nodeMap) n.root.scale.setScalar(id === selected ? 1.06 : 1);
     }
   });
   canvas.addEventListener(
     "wheel",
     (ev) => {
       ev.preventDefault();
-      distance = THREE.MathUtils.clamp(distance + ev.deltaY * 0.008, 6.5, 12.5);
+      distance = THREE.MathUtils.clamp(distance + ev.deltaY * 0.008, 8, 14);
     },
     { passive: false },
   );
@@ -451,46 +420,43 @@ export function initAaaxFlow(root: HTMLElement) {
   let raf = 0;
   const clock = new THREE.Clock();
 
-  const placeCamera = () => {
-    const cy = Math.cos(rotX);
-    camera.position.set(
-      Math.sin(rotY) * distance * cy,
-      2.1 + Math.sin(rotX) * distance * 0.55,
-      Math.cos(rotY) * distance * cy,
-    );
-    camera.lookAt(0, 0.1, 0);
-  };
-
   const animate = () => {
     raf = requestAnimationFrame(animate);
     const t = clock.getElapsedTime();
-    rotY += (targetRotY - rotY) * 0.09;
-    rotX += (targetRotX - rotX) * 0.09;
-    if (!dragging) targetRotY += 0.0009;
-    placeCamera();
+    rotY += (targetRotY - rotY) * 0.1;
+    rotX += (targetRotX - rotX) * 0.1;
+    // no auto-spin (was a big source of label chaos)
 
+    const cy = Math.cos(rotX);
+    camera.position.set(
+      Math.sin(rotY) * distance * cy,
+      2.6 + Math.sin(rotX) * distance * 0.5,
+      Math.cos(rotY) * distance * cy,
+    );
+    camera.lookAt(0, 0.05, 0.15);
+
+    // tiny bob only on boxes — labels stay parented, small motion OK
     for (const n of NODES) {
       const entry = nodeMap.get(n.id);
-      if (!entry) continue;
-      entry.root.position.y = entry.baseY + Math.sin(t * 1.1 + n.x * 0.4) * 0.05;
+      if (entry) entry.root.position.y = entry.baseY + Math.sin(t * 0.9 + n.x * 0.2) * 0.025;
     }
 
     for (let i = 0; i < pulses.length; i++) {
       const p = pulses[i];
-      const phase = (t * p.speed + i * 0.37) % 1;
-      const pt = p.curve.getPoint(phase);
-      p.mesh.position.copy(pt);
-      p.mesh.position.y += 0.02;
-      p.mesh.scale.setScalar(0.85 + 0.25 * Math.sin(phase * Math.PI));
+      const phase = (t * p.speed + p.phase) % 1;
+      p.mesh.position.copy(p.curve.getPoint(phase));
+      p.mesh.scale.setScalar(0.9 + 0.2 * Math.sin(phase * Math.PI));
     }
 
     renderer.render(scene, camera);
+    labelRenderer.render(scene, camera);
   };
   animate();
 
   return () => {
     cancelAnimationFrame(raf);
     ro.disconnect();
+    labelRenderer.domElement.remove();
     disposeObject(scene);
     renderer.dispose();
   };
