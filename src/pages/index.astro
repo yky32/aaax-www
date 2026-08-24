@@ -1,0 +1,289 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const GH = "https://github.com/yky32/aaax";
+const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.7.0";
+const BOOKLET = "https://github.com/yky32/aaax/blob/main/docs/booklet.md";
+const MESH = "https://github.com/yky32/aaax/tree/main/examples/compose-mesh";
+
+const stack = [
+  { k: "Java", v: "21+" },
+  { k: "Spring Boot", v: "4.1" },
+  { k: "License", v: "Apache-2.0" },
+  { k: "Release", v: "v0.7.0" },
+];
+
+const features = [
+  {
+    title: "OIDC you control",
+    body: "Authorization Server on Spring Boot 4 / JDK 21. Discover, JWKS, code, refresh, client credentials — clone and run.",
+  },
+  {
+    title: "Identity Event Bus",
+    body: "Login, MFA, OTP, clients as CloudEvents → Kafka or signed webhook. Your notification-service owns SMS and email.",
+  },
+  {
+    title: "Hosted experiences",
+    body: "Sign-in, sign-up, user, admin in the same jar. Password, OTP, magic link, QR, TOTP, trusted devices.",
+  },
+  {
+    title: "No private Maven",
+    body: "Central + public OpenSAML only. Layer-first packages (endpoint / usecase / entity) engineers can read.",
+  },
+];
+
+const steps = [
+  { step: "01", t: "Authenticate", d: "Password · OTP · magic · QR · TOTP · social · passkeys (opt-in)" },
+  { step: "02", t: "Emit", d: "Catalog v1.0 CloudEvents — login, mfa, otp.dispatch, client changes" },
+  { step: "03", t: "Your mesh", d: "Kafka topic and/or HMAC webhook → notification-service you own" },
+];
+
+const compare = [
+  {
+    name: "vs Keycloak",
+    win: "Lean path. Event-first notify. Clone DX.",
+    lose: "Not a kitchen-sink IdP / LDAP federation suite.",
+  },
+  {
+    name: "vs Clerk",
+    win: "Self-host. $0 seats. Your mesh, your SMS.",
+    lose: "Not a hosted component marketplace.",
+  },
+  {
+    name: "vs Logto",
+    win: "Native JVM AS + Kafka handoff for Spring platforms.",
+    lose: "Orgs / JS console ecosystem still thinner.",
+  },
+];
+
+const tags = [
+  "OIDC AS",
+  "Admin /admin",
+  "QR login",
+  "Trusted devices",
+  "SPA PKCE",
+  "SAML SP",
+  "Redis OTP/QR",
+  "Layer-first packages",
+];
+---
+
+<Layout>
+  <header class="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
+    <div class="flex items-center gap-3">
+      <div
+        class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-sky-400 to-indigo-500 text-sm font-bold text-slate-950"
+      >
+        A
+      </div>
+      <div>
+        <div class="text-sm font-semibold tracking-wide">AAAX</div>
+        <div class="mono text-[11px] text-[var(--muted)]">Accounts · AuthN · AuthZ · eXperiences</div>
+      </div>
+    </div>
+    <nav class="hidden items-center gap-6 text-sm text-[var(--muted)] md:flex">
+      <a href="#wedge" class="hover:text-[var(--ink)]">Wedge</a>
+      <a href="#features" class="hover:text-[var(--ink)]">Product</a>
+      <a href="#compare" class="hover:text-[var(--ink)]">Fit</a>
+      <a href="#start" class="hover:text-[var(--ink)]">Start</a>
+      <a
+        href={GH}
+        class="rounded-full border border-[var(--line)] px-3 py-1.5 text-[var(--ink)] transition hover:border-sky-400/40 hover:text-sky-300"
+        >GitHub</a
+      >
+    </nav>
+  </header>
+
+  <main class="relative z-10">
+    <section class="mx-auto max-w-6xl px-6 pb-20 pt-10 md:pb-28 md:pt-16">
+      <div
+        class="inline-flex items-center gap-2 rounded-full border border-[var(--line)] bg-[var(--elevated)]/60 px-3 py-1 mono text-[11px] text-sky-300/90"
+      >
+        <span class="h-1.5 w-1.5 rounded-full bg-[var(--good)]"></span>
+        Open source · Apache-2.0 · v0.7.0 · Astro landing
+      </div>
+
+      <h1 class="mt-6 max-w-3xl text-4xl font-semibold tracking-tight md:text-6xl md:leading-[1.05]">
+        Identity you run.
+        <br />
+        <span
+          class="bg-gradient-to-r from-sky-300 via-indigo-300 to-emerald-300 bg-clip-text text-transparent"
+        >
+          Signals you own.
+        </span>
+      </h1>
+
+      <p class="mt-6 max-w-2xl text-lg leading-relaxed text-[var(--muted)] md:text-xl">
+        Self-host OIDC for <strong class="font-medium text-[var(--ink)]">Spring / platform engineers</strong> —
+        without SaaS seat tax, without Keycloak weight, without private Maven. AAAX authenticates;{" "}
+        <strong class="font-medium text-[var(--ink)]">your mesh notifies</strong>.
+      </p>
+
+      <div class="mt-10 flex flex-wrap items-center gap-3">
+        <a
+          href={GH}
+          class="glow inline-flex items-center justify-center rounded-full bg-sky-400 px-5 py-2.5 text-sm font-semibold text-slate-950 transition hover:bg-sky-300"
+          >Star on GitHub</a
+        >
+        <a
+          href={RELEASE}
+          class="inline-flex items-center justify-center rounded-full border border-[var(--line)] bg-[var(--elevated)] px-5 py-2.5 text-sm font-medium transition hover:border-sky-400/30"
+          >Release v0.7.0</a
+        >
+        <a
+          href={BOOKLET}
+          class="inline-flex items-center justify-center rounded-full px-4 py-2.5 text-sm text-[var(--muted)] underline-offset-4 hover:text-[var(--ink)] hover:underline"
+          >Read the booklet</a
+        >
+      </div>
+
+      <div class="mt-14 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {
+          stack.map((s) => (
+            <div class="glass rounded-2xl px-4 py-3">
+              <div class="mono text-[10px] uppercase tracking-wider text-[var(--muted)]">{s.k}</div>
+              <div class="mt-1 text-sm font-medium">{s.v}</div>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="mx-auto max-w-6xl px-6 pb-24">
+      <div class="glass glow overflow-hidden rounded-2xl">
+        <div class="flex items-center gap-2 border-b border-[var(--line)] px-4 py-3">
+          <span class="h-2.5 w-2.5 rounded-full bg-rose-400/80"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-amber-400/80"></span>
+          <span class="h-2.5 w-2.5 rounded-full bg-emerald-400/80"></span>
+          <span class="mono ml-2 text-xs text-[var(--muted)]">5-minute path</span>
+        </div>
+        <pre
+          class="overflow-x-auto p-5 mono text-[13px] leading-relaxed text-sky-100/90 md:text-sm"
+        ><code>{`git clone https://github.com/yky32/aaax.git && cd aaax
+git checkout v0.7.0
+mvn test && mvn spring-boot:run
+
+# token + protected API
+./examples/curl/get-token-and-hello.sh
+
+# mesh: Postgres + Redis + Kafka + HMAC webhook
+mvn -DskipTests package && cd examples/compose-mesh && docker compose up --build`}</code></pre>
+      </div>
+    </section>
+
+    <section id="wedge" class="mx-auto max-w-6xl px-6 pb-24">
+      <div class="max-w-2xl">
+        <p class="mono text-xs uppercase tracking-[0.2em] text-sky-400/90">Primary win</p>
+        <h2 class="mt-3 text-3xl font-semibold tracking-tight md:text-4xl">Identity Event Bus</h2>
+        <p class="mt-4 text-[var(--muted)] md:text-lg">
+          Lifecycle signals leave the IdP as structured events. Your platform keeps delivery — SMS, email, push —
+          on the stack you already operate.
+        </p>
+      </div>
+
+      <div class="mt-10 grid gap-4 lg:grid-cols-3">
+        {
+          steps.map((c) => (
+            <div class="glass rounded-2xl p-5">
+              <div class="mono text-xs text-sky-400">{c.step}</div>
+              <h3 class="mt-2 text-lg font-semibold">{c.t}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-[var(--muted)]">{c.d}</p>
+            </div>
+          ))
+        }
+      </div>
+
+      <p class="mt-8 mono text-sm text-[var(--muted)]">
+        Positioning: <span class="text-[var(--ink)]">AAAX authenticates. Your mesh notifies.</span>
+      </p>
+    </section>
+
+    <section id="features" class="mx-auto max-w-6xl px-6 pb-24">
+      <h2 class="text-3xl font-semibold tracking-tight">What ships in the jar</h2>
+      <p class="mt-3 max-w-2xl text-[var(--muted)]">
+        Hosted UI + OIDC AS + admin. Built for engineers who already think in services and events.
+      </p>
+      <div class="mt-10 grid gap-4 md:grid-cols-2">
+        {
+          features.map((f) => (
+            <article class="glass rounded-2xl p-6">
+              <h3 class="text-lg font-semibold">{f.title}</h3>
+              <p class="mt-2 text-sm leading-relaxed text-[var(--muted)]">{f.body}</p>
+            </article>
+          ))
+        }
+      </div>
+      <div class="mt-8 flex flex-wrap gap-2">
+        {
+          tags.map((tag) => (
+            <span class="rounded-full border border-[var(--line)] bg-[var(--elevated)]/50 px-3 py-1 mono text-[11px] text-[var(--muted)]">
+              {tag}
+            </span>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="compare" class="mx-auto max-w-6xl px-6 pb-24">
+      <h2 class="text-3xl font-semibold tracking-tight">Where it fits</h2>
+      <p class="mt-3 max-w-2xl text-[var(--muted)]">
+        Honest map — not out-Keycloak, not out-Clerk. Best when your platform already runs Kafka and a notify path.
+      </p>
+      <div class="mt-10 grid gap-4 md:grid-cols-3">
+        {
+          compare.map((c) => (
+            <div class="glass rounded-2xl p-5">
+              <h3 class="font-semibold">{c.name}</h3>
+              <p class="mt-3 text-sm text-[var(--good)]">✓ {c.win}</p>
+              <p class="mt-2 text-sm text-[var(--muted)]">→ {c.lose}</p>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section id="start" class="mx-auto max-w-6xl px-6 pb-28">
+      <div class="glass glow rounded-3xl p-8 md:flex md:items-center md:justify-between md:gap-10 md:p-10">
+        <div class="max-w-xl">
+          <h2 class="text-2xl font-semibold tracking-tight md:text-3xl">Start with the booklet</h2>
+          <p class="mt-3 text-[var(--muted)]">
+            Single SoT for architecture, Event Bus catalog, and the layer-first code map. Then open the mesh
+            example for the full story.
+          </p>
+        </div>
+        <div class="mt-6 flex flex-col gap-3 md:mt-0 md:min-w-[220px]">
+          <a
+            href={BOOKLET}
+            class="inline-flex items-center justify-center rounded-full bg-sky-400 px-5 py-2.5 text-sm font-semibold text-slate-950 hover:bg-sky-300"
+            >docs/booklet.md</a
+          >
+          <a
+            href={MESH}
+            class="inline-flex items-center justify-center rounded-full border border-[var(--line)] px-5 py-2.5 text-sm hover:border-sky-400/40"
+            >examples/compose-mesh</a
+          >
+          <a
+            href={GH}
+            class="inline-flex items-center justify-center rounded-full px-5 py-2.5 text-sm text-[var(--muted)] hover:text-[var(--ink)]"
+            >github.com/yky32/aaax →</a
+          >
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative z-10 border-t border-[var(--line)]">
+    <div
+      class="mx-auto flex max-w-6xl flex-col gap-2 px-6 py-8 text-sm text-[var(--muted)] md:flex-row md:items-center md:justify-between"
+    >
+      <div>
+        <span class="font-medium text-[var(--ink)]">AAAX</span>
+        <span class="mx-2 opacity-40">·</span>
+        Apache-2.0 · <a href="https://github.com/yky32" class="text-sky-300 hover:underline">yky32</a>
+        <span class="mx-2 opacity-40">·</span>
+        site: Astro
+      </div>
+      <div class="mono text-xs">Not affiliated with Keycloak, Clerk, or Logto.</div>
+    </div>
+  </footer>
+</Layout>
