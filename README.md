@@ -6,7 +6,10 @@ Product site for **[AAAX](https://github.com/yky32/aaax)**.
 
 **https://aaax-www.vercel.app/**
 
-Astro 7 + Tailwind 4 · Vercel (`yky32s-projects/aaax-www`) · auto-deploy from `main`.
+- MCP Auth index: **https://aaax-www.vercel.app/mcp-auth**
+- Product repo index: https://github.com/yky32/aaax/blob/main/docs/mcp-auth-index.md
+
+Astro 7 + Tailwind 4 · Vercel · auto-deploy from `main`.
 
 ## Dev
 

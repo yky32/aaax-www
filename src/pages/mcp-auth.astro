@@ -1,0 +1,115 @@
+---
+import Layout from "../layouts/Layout.astro";
+
+const GH = "https://github.com/yky32/aaax";
+const INDEX = "https://github.com/yky32/aaax/blob/main/docs/mcp-auth-index.md";
+const SPEC = "https://modelcontextprotocol.io/specification/2025-11-25/basic/authorization";
+const SITE = "https://aaax-www.vercel.app/";
+---
+
+<Layout
+  title="MCP Auth Index — AAAX as OIDC AS for MCP"
+  description="Self-host OIDC Authorization Server for Model Context Protocol. MCP OAuth, PRM, PKCE, Spring Boot. AAAX MCP auth index."
+>
+  <div class="wrap">
+    <header class="flex items-start justify-between gap-4">
+      <div>
+        <p class="mono text-sm font-medium tracking-wide">
+          <a href="/">AAAX</a>
+          <span class="text-[var(--muted)]"> / mcp-auth</span>
+        </p>
+        <p class="mt-1 text-sm text-[var(--muted)]">discovery index · not a tool host</p>
+      </div>
+      <a class="mono text-sm underline underline-offset-4" href={GH}>GitHub ↗</a>
+    </header>
+
+    <p class="stamp mt-7">
+      <span class="dot" aria-hidden="true"></span>
+      mcp · oauth · oidc · self-host
+    </p>
+
+    <h1 class="serif mt-4 text-[2.1rem] leading-[1.12] md:text-[2.6rem]">
+      MCP Auth Index
+    </h1>
+    <p class="mt-4 text-[var(--muted)]">
+      Remote MCP servers are <strong class="text-[var(--ink)]">OAuth Resource Servers</strong>. Clients discover an
+      Authorization Server, run OAuth 2.1 (+ PKCE), then call tools with a Bearer token.
+    </p>
+    <p class="mt-3 text-[var(--muted)]">
+      <strong class="text-[var(--ink)]">AAAX</strong> is a lean self-host OIDC AS on Spring Boot — issuer, JWKS, PKCE,
+      confidential clients, Identity Event Bus. Put it <em>behind</em> your MCP HTTP surface.
+    </p>
+
+    <div class="mt-6 flex flex-wrap gap-2.5">
+      <a class="btn btn-fill" href={INDEX}>Full index on GitHub</a>
+      <a class="btn btn-ghost" href={GH}>yky32/aaax</a>
+      <a class="btn btn-ghost" href={SPEC}>MCP auth spec</a>
+    </div>
+
+    <hr class="rule" />
+
+    <h2 class="serif text-[1.55rem]">Pattern</h2>
+    <div class="shell mt-3">
+      <div class="shell-bar">mcp client → AS → resource server</div>
+      <pre><code>MCP Client
+  │  401 + resource_metadata (PRM)
+  │  authorization_servers: [ AAAX issuer ]
+  ▼
+AAAX (OIDC AS)     PKCE / client credentials
+  │  access token
+  ▼
+MCP RS / gateway   validate JWT via AAAX JWKS
+  │
+  ▼
+tools</code></pre>
+    </div>
+
+    <h2 class="serif mt-10 text-[1.55rem]">Honest scope</h2>
+    <ul class="mt-3 space-y-2 text-[var(--muted)]">
+      <li>
+        <strong class="text-[var(--ink)]">Ships:</strong> OIDC discovery, JWKS, auth code + PKCE, admin clients, events.
+      </li>
+      <li>
+        <strong class="text-[var(--ink)]">Not yet:</strong> first-class MCP PRM host, MCP gateway, CIMD productization.
+      </li>
+    </ul>
+
+    <h2 class="serif mt-10 text-[1.55rem]">Upstream reading</h2>
+    <ul class="mt-3 space-y-2 text-sm text-[var(--muted)]">
+      <li>
+        <a class="underline underline-offset-3" href={SPEC}>MCP Authorization specification</a>
+      </li>
+      <li>
+        <a
+          class="underline underline-offset-3"
+          href="https://modelcontextprotocol.io/docs/2026-07-28/tutorials/security/authorization"
+          >MCP authorization tutorial</a
+        >
+      </li>
+      <li>
+        <a class="underline underline-offset-3" href="https://auth0.com/blog/mcp-specs-update-all-about-auth/"
+          >Auth0 — MCP as resource server</a
+        >
+      </li>
+      <li>
+        <a
+          class="underline underline-offset-3"
+          href="https://aaronparecki.com/2025/04/03/15/oauth-for-model-context-protocol"
+          >Parecki — OAuth for MCP</a
+        >
+      </li>
+    </ul>
+
+    <p class="mt-10 text-sm text-[var(--muted)]">
+      Keywords: mcp oauth · mcp oidc · mcp authorization server · rfc9728 · spring boot mcp auth · self-host idp for
+      agents
+    </p>
+
+    <footer class="site">
+      <p>
+        <a href={SITE}>aaax-www</a> ·
+        <a href={INDEX}>mcp-auth-index.md</a> · Apache-2.0
+      </p>
+    </footer>
+  </div>
+</Layout>
