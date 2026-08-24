@@ -4,10 +4,10 @@
 
 <div class="flow-stage" id="aaax-flow" data-aaax-flow>
   <canvas aria-label="AAAX login and Spring integration flow"></canvas>
-  <div class="hint">Drag to orbit · scroll to zoom · click a box for the hop.</div>
+  <div class="hint">Drag to look around · scroll zoom · click a node</div>
 </div>
 <div class="flow-legend" aria-hidden="true">
-  <span><i class="login"></i> login / token</span>
+  <span><i class="login"></i> login / JWT</span>
   <span><i class="event"></i> identity events</span>
 </div>
 
@@ -17,7 +17,6 @@
   const root = document.querySelector("[data-aaax-flow]");
   if (root instanceof HTMLElement) {
     const dispose = initAaaxFlow(root);
-    // hot reload / nav
     document.addEventListener(
       "astro:before-swap",
       () => {
