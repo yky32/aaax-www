@@ -7,12 +7,12 @@ const README = "https://github.com/yky32/aaax/blob/main/README.md";
 
 const modules = [
   {
-    t: "aaax-server",
-    d: "qs/uaa 1:1 — OIDC Authorization Server, accounts, OTP, devices, social, admin paths. Package com.aaax.*",
+    t: "com.aaax.*",
+    d: "qs/uaa 1:1 — OIDC AS, accounts, OTP, devices, social, admin. Same tree as upstream uaa.",
   },
   {
-    t: "aaax-core",
-    d: "qs app-core in-repo — BizException, R/Result, AuditEntity, SystemResponse. Package com.aaax.core — no private Maven.",
+    t: "com.aaax.core.*",
+    d: "qs app-core in the same project — BizException, R/Result, AuditEntity, SystemResponse. No private Maven module.",
   },
 ];
 
@@ -92,8 +92,8 @@ const fromUaa = [
         <div class="shell-bar">clone · build · run</div>
         <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
 export JAVA_HOME=…/openjdk@21   <span class="c"># 17+ ; avoid JDK 26 + old lombok</span>
-mvn -pl aaax-server -am package -Dmaven.test.skip=true
-java -jar aaax-server/target/aaax-server-0.9.0-SNAPSHOT.jar
+mvn -DskipTests package
+java -jar target/aaax-0.9.0-SNAPSHOT.jar
 <span class="c"># :8081 — same default as qs uaa</span></code></pre>
       </div>
     </section>
