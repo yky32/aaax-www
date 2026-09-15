@@ -23,7 +23,7 @@ const NODES: NodeDef[] = [
   { id: "user", step: "1", label: "Browser", sub: "sign-in · PKCE", x: -2.65, y: 0.55, z: 0.15, role: "edge" },
   { id: "aaax", step: "2", label: "AAAX", sub: "Spring Boot AS", x: 0, y: 1.25, z: 0, role: "core" },
   { id: "app", step: "3", label: "Your app", sub: "JWT · API", x: 2.65, y: 0.55, z: 0.15, role: "edge" },
-  { id: "mesh", step: "4", label: "Your mesh", sub: "Kafka · webhook", x: 0, y: -1.45, z: 0.35, role: "out" },
+  { id: "mesh", step: "4", label: "Your stack", sub: "Kafka off · webhooks", x: 0, y: -1.45, z: 0.35, role: "out" },
 ];
 
 type EdgeDef = {

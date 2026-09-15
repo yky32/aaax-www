@@ -37,7 +37,7 @@ const SITE = "https://aaax-www.vercel.app/";
     </p>
     <p class="mt-3 text-[var(--muted)]">
       <strong class="text-[var(--ink)]">AAAX</strong> is a lean self-host OIDC AS on Spring Boot — issuer, JWKS, PKCE,
-      confidential clients, Identity Event Bus. Put it <em>behind</em> your MCP HTTP surface.
+      confidential + public clients. Put it <em>behind</em> your MCP HTTP surface (AS only — not an MCP tool host).
     </p>
 
     <div class="mt-6 flex flex-wrap gap-2.5">
@@ -67,10 +67,10 @@ tools</code></pre>
     <h2 class="serif mt-10 text-[1.55rem]">Honest scope</h2>
     <ul class="mt-3 space-y-2 text-[var(--muted)]">
       <li>
-        <strong class="text-[var(--ink)]">Ships:</strong> OIDC discovery, JWKS, auth code + PKCE, admin clients, events.
+        <strong class="text-[var(--ink)]">Ships:</strong> OIDC discovery, JWKS, auth code + PKCE, password + refresh grants.
       </li>
       <li>
-        <strong class="text-[var(--ink)]">Not yet:</strong> first-class MCP PRM host, MCP gateway, CIMD productization.
+        <strong class="text-[var(--ink)]">Not in this jar:</strong> MCP PRM host, MCP gateway, Event Bus catalog, hosted /admin UI.
       </li>
     </ul>
 

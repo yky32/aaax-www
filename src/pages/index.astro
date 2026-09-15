@@ -4,31 +4,39 @@ import FlowStage from "../components/FlowStage.astro";
 
 const GH = "https://github.com/yky32/aaax";
 const README = "https://github.com/yky32/aaax/blob/main/README.md";
+const BOOKLET = "https://github.com/yky32/aaax/blob/main/docs/booklet.md";
+const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.9.0";
 
 const modules = [
   {
     t: "com.aaax.server.*",
-    d: "qs/uaa 1:1 — OIDC AS, accounts, OTP, devices, social, admin. Same tree as upstream uaa.",
+    d: "Authentication server — OIDC AS, users, OTP, devices, hosted /login, custom grants. Endpoint → UseCase → Repository.",
   },
   {
     t: "com.aaax.core.*",
-    d: "qs app-core in the same project — BizException, R/Result, AuditEntity, SystemResponse. No private Maven module.",
+    d: "Foundation in-tree — BizException, R/Result, AuditEntity, shared utils. No private Maven module.",
   },
 ];
 
-const fromUaa = [
-  { t: "OIDC Authorization Server", d: "Spring Authorization Server — code, refresh, client credentials." },
-  { t: "User · Authentication model", d: "uaa PO tree: user / authentication / devices / tokens / RBAC." },
-  { t: "OTP & password flows", d: "uaa use cases + error codes (UAA/OTP/ACC style Response codes)." },
-  { t: "Social auth extensions", d: "uaa social_auth config extensions (Google etc.)." },
-  { t: "Redis · Kafka · Liquibase", d: "Same ops surface as qs uaa." },
-  { t: "Exception envelope", d: "throw new BizException(Response) → R/Result — app-core shape." },
+const shipped = [
+  { t: "OIDC + RFC 8414", d: "Discovery, JWKS, /oauth2/token (RFC 6749 JSON access_token)." },
+  { t: "PKCE + hosted login", d: "Seed public client aaax-pkce; /oauth2/authorize → /login → loopback code." },
+  { t: "Register · OTP · password", d: "User registration, OTP flows, custom-password-grant + refresh_token." },
+  { t: "Social idToken verify", d: "Google + Apple link/verify — not a separate token grant." },
+  { t: "Postgres + Redis local", d: "Compose-friendly; Kafka off by default (AAAX_KAFKA_ENABLED=false)." },
+  { t: "Boot 4.1.1 · Java 21", d: "Jackson 3 (tools.jackson); mvn test + CI runtime smoke." },
+];
+
+const notShipped = [
+  "Hosted /admin · /sign-in product UI",
+  "Event Bus catalog · /v1/accounts",
+  "Passkeys · SAML · orgs",
 ];
 ---
 
 <Layout
-  title="AAAX — qs/uaa open-sourced"
-  description="AAAX is a 1:1 open-source port of qs/uaa with app-core vendored as com.aaax.core. Spring Boot 3.1 · Apache-2.0."
+  title="AAAX — self-host OpenID Connect authentication server"
+  description="Self-host OIDC for Spring/JVM teams. Boot 4.1.1 · Java 21 · Apache-2.0. Honest scope — see booklet §2."
 >
   <div class="wrap wrap--wide">
     <header class="flex items-start justify-between gap-4">
@@ -46,30 +54,30 @@ const fromUaa = [
 
     <p class="stamp mt-7">
       <span class="dot" aria-hidden="true"></span>
-      0.9.0-SNAPSHOT · Apache-2.0 · Boot&nbsp;3.1 · JDK&nbsp;17+
+      <a class="underline underline-offset-2" href={RELEASE}>v0.9.0</a> · Apache-2.0 · Boot&nbsp;4.1.1 · JDK&nbsp;21
     </p>
 
     <h1 class="serif mt-4 text-[2.2rem] leading-[1.12] md:text-[2.85rem] md:leading-[1.08]">
-      qs/<span class="mark">uaa</span> · open source · your mesh.
+      Self-host <span class="mark">OIDC</span> · one jar · honest scope.
     </h1>
 
     <p class="mt-4 text-[1.02rem] text-[var(--muted)]">
-      <strong class="font-medium text-[var(--ink)]">AAAX</strong> is not a greenfield rewrite.
-      It is a <strong class="font-medium text-[var(--ink)]">1:1 port of qs/uaa</strong> with
-      <strong class="font-medium text-[var(--ink)]">app-core vendored</strong> as
-      <span class="mono text-[0.9rem]">com.aaax.core</span> — one public repo, no private Maven.
+      <strong class="font-medium text-[var(--ink)]">AAAX</strong> is a self-host OpenID Connect authentication server
+      for Spring/JVM teams — not a Clerk clone, not Keycloak, not a mesh product. Product facts:
+      <a class="underline underline-offset-2" href={BOOKLET}>docs/booklet.md</a> (code wins if it drifts).
     </p>
 
     <div class="mt-6 flex flex-wrap gap-2.5">
       <a class="btn btn-fill" href={GH}>Open the repo</a>
+      <a class="btn btn-ghost" href={RELEASE}>v0.9.0 release</a>
       <a class="btn btn-ghost" href={README}>README</a>
       <a class="btn btn-ghost" href="/mcp-auth">MCP Auth</a>
     </div>
 
     <section class="mt-11" aria-labelledby="flow">
-      <h2 id="flow" class="serif text-[1.65rem] md:text-2xl">Login → Spring → mesh</h2>
+      <h2 id="flow" class="serif text-[1.65rem] md:text-2xl">Login → tokens → your apps</h2>
       <p class="mt-2 text-sm text-[var(--muted)]">
-        Same idea as before: authenticate in AAAX; notify from your stack.
+        Authenticate with AAAX; validate JWTs in your services. Optional Kafka is off by default.
       </p>
       <FlowStage />
     </section>
@@ -91,21 +99,21 @@ const fromUaa = [
       <div class="shell mt-4">
         <div class="shell-bar">clone · build · run</div>
         <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
-export JAVA_HOME=…/openjdk@21   <span class="c"># 17+ ; avoid JDK 26 + old lombok</span>
+export JAVA_HOME=…/openjdk@21   <span class="c"># JDK 21 ; avoid JDK 26 + old lombok</span>
 mvn -DskipTests package
-java -jar target/aaax-0.9.0-SNAPSHOT.jar
-<span class="c"># :8081 — same default as qs uaa</span></code></pre>
+java -jar target/aaax-0.9.0.jar
+<span class="c"># :8081 — AAAX_LOCAL_SEED=true for first-clone smoke user/client</span></code></pre>
       </div>
     </section>
 
     <section class="mt-12" aria-labelledby="feat">
-      <h2 id="feat" class="serif text-[1.65rem] md:text-2xl">From qs/uaa (now OSS)</h2>
+      <h2 id="feat" class="serif text-[1.65rem] md:text-2xl">Shipped in 0.9</h2>
       <p class="mt-2 text-[var(--muted)]">
-        Feature surface follows the uaa tree — not an invented AAAX-only matrix.
+        Matches <a class="underline underline-offset-2" href={BOOKLET}>booklet §2</a> — we do not claim features absent from the tree.
       </p>
       <div class="mt-4 grid gap-3 sm:grid-cols-2">
         {
-          fromUaa.map((f) => (
+          shipped.map((f) => (
             <article class="card">
               <h3>{f.t}</h3>
               <p>{f.d}</p>
@@ -113,6 +121,10 @@ java -jar target/aaax-0.9.0-SNAPSHOT.jar
           ))
         }
       </div>
+      <p class="mt-6 text-sm text-[var(--muted)]">
+        <strong class="text-[var(--ink)]">Not in this jar:</strong>
+        {notShipped.join(" · ")}
+      </p>
     </section>
 
     <section class="mt-12" aria-labelledby="line">
@@ -120,17 +132,19 @@ java -jar target/aaax-0.9.0-SNAPSHOT.jar
       <blockquote
         class="serif m-0 mt-3 border-l-[3px] border-[var(--accent)] pl-4 text-[1.55rem] leading-snug md:text-[1.7rem]"
       >
-        AAAX authenticates.<br />Your mesh notifies.
+        AAAX authenticates.<br />Your apps validate JWTs.
       </blockquote>
       <p class="mt-4 text-sm text-[var(--muted)]">
-        Product name: <strong class="text-[var(--ink)]">AAAX</strong> · upstream craft:
-        <strong class="text-[var(--ink)]">qs/uaa + app-core</strong> · license Apache-2.0
+        Product name: <strong class="text-[var(--ink)]">AAAX</strong> · license Apache-2.0 · eng SoT:
+        <a class="underline underline-offset-2" href={BOOKLET}>booklet.md</a>
       </p>
     </section>
 
     <footer class="site">
       <p>
-        AAAX by <a href="https://github.com/yky32">yky32</a> · port of qs/uaa · core in-tree
+        AAAX by <a href="https://github.com/yky32">yky32</a> ·
+        <a href={RELEASE}>v0.9.0</a> ·
+        <a href={GH}>github.com/yky32/aaax</a>
       </p>
     </footer>
   </div>
