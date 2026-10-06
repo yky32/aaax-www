@@ -1,28 +1,68 @@
 ---
-/** Interactive three.js map of login + Spring + event mesh */
+/** three.js when WebGL is ok; static 3-hop otherwise. Labels: CSS2D, above boxes. */
 ---
 
 <div class="flow-stage" id="aaax-flow" data-aaax-flow>
-  <canvas aria-label="AAAX login and Spring integration flow"></canvas>
-  <div class="hint">Drag to look around · scroll zoom · click a node</div>
+  <ol class="flow-static" aria-label="Login flow">
+    <li>
+      <span class="flow-static__step">1</span>
+      <span class="flow-static__body">
+        <strong>Browser</strong>
+        <small>/login · PKCE</small>
+      </span>
+    </li>
+    <li>
+      <span class="flow-static__step">2</span>
+      <span class="flow-static__body">
+        <strong>AAAX</strong>
+        <small>OIDC AS</small>
+      </span>
+    </li>
+    <li>
+      <span class="flow-static__step">3</span>
+      <span class="flow-static__body">
+        <strong>Your app</strong>
+        <small>JWT · JWKS</small>
+      </span>
+    </li>
+  </ol>
+  <canvas aria-label="AAAX login and JWT flow" hidden></canvas>
+  <div class="hint" hidden>Drag to look around · scroll zoom · click a node</div>
 </div>
 <div class="flow-legend" aria-hidden="true">
   <span><i class="login"></i> login / JWT</span>
-  <span><i class="event"></i> optional async</span>
 </div>
 
 <script>
-  import { initAaaxFlow } from "../scripts/flow";
-
   const root = document.querySelector("[data-aaax-flow]");
-  if (root instanceof HTMLElement) {
-    const dispose = initAaaxFlow(root);
-    document.addEventListener(
-      "astro:before-swap",
-      () => {
-        dispose?.();
-      },
-      { once: true },
-    );
+  if (!(root instanceof HTMLElement)) {
+    // skip
+  } else {
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const webgl = (() => {
+      try {
+        const c = document.createElement("canvas");
+        return Boolean(c.getContext("webgl2") || c.getContext("webgl"));
+      } catch {
+        return false;
+      }
+    })();
+
+    if (!reduce && webgl) {
+      const canvas = root.querySelector("canvas");
+      const hint = root.querySelector(".hint");
+      if (canvas instanceof HTMLCanvasElement) canvas.hidden = false;
+      if (hint instanceof HTMLElement) hint.hidden = false;
+      root.classList.add("is-webgl");
+      const { initAaaxFlow } = await import("../scripts/flow");
+      const dispose = initAaaxFlow(root);
+      document.addEventListener(
+        "astro:before-swap",
+        () => {
+          dispose?.();
+        },
+        { once: true },
+      );
+    }
   }
 </script>

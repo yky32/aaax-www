@@ -1,4 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap");
 @import "tailwindcss";
 
 :root {
@@ -224,12 +223,80 @@ hr.rule {
   border: 1.5px solid var(--line);
   background:
     radial-gradient(ellipse 80% 60% at 50% 40%, #fffdf9 0%, #f3eee4 70%, #ebe4d8 100%);
-  /* visible so CSS2D tags are not cropped at edges */
   overflow: visible;
-  min-height: 380px;
-  height: clamp(380px, 54vw, 500px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
   z-index: 1;
+}
+
+.flow-stage.is-webgl {
+  min-height: 380px;
+  height: clamp(380px, 54vw, 500px);
+}
+
+.flow-static {
+  list-style: none;
+  margin: 0;
+  padding: 1rem;
+  display: grid;
+  gap: 0.65rem;
+}
+
+@media (min-width: 640px) {
+  .flow-static {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.flow-static li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  background: var(--panel);
+  border: 1.5px solid var(--line);
+  padding: 0.85rem 0.9rem;
+}
+
+.flow-static__step {
+  flex: 0 0 auto;
+  width: 1.35rem;
+  height: 1.35rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.7rem;
+  font-weight: 600;
+  background: #f0ebe1;
+  color: var(--accent);
+}
+
+.flow-static__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.flow-static__body strong {
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.flow-static__body small {
+  font-family: "IBM Plex Mono", ui-monospace, monospace;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.flow-stage.is-webgl .flow-static {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .flow-stage canvas {
@@ -399,11 +466,31 @@ hr.rule {
 }
 
 .shell-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
   padding: 0.5rem 0.75rem;
   border-bottom: 1px solid #2a2620;
   font-size: 0.72rem;
   color: var(--code-dim);
   font-family: "IBM Plex Mono", monospace;
+}
+
+.shell-copy {
+  font-family: inherit;
+  font-size: 0.72rem;
+  color: var(--code-fg);
+  background: transparent;
+  border: 1px solid #3a3530;
+  padding: 0.18rem 0.45rem;
+  cursor: pointer;
+}
+
+.shell-copy:hover,
+.shell-copy:focus-visible {
+  border-color: var(--code-fg);
+  outline: none;
 }
 
 .shell pre {

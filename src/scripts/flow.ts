@@ -16,14 +16,14 @@ type NodeDef = {
 };
 
 /**
- * Compact diamond layout — all labels sit ABOVE nodes (CSS2D),
+ * Compact 3-hop — labels sit ABOVE nodes (CSS2D),
  * so nothing clips at left/right stage edges.
+ * Honest 0.9: Browser → AAAX → app. No Event Bus node.
  */
 const NODES: NodeDef[] = [
-  { id: "user", step: "1", label: "Browser", sub: "sign-in · PKCE", x: -2.65, y: 0.55, z: 0.15, role: "edge" },
-  { id: "aaax", step: "2", label: "AAAX", sub: "Spring Boot AS", x: 0, y: 1.25, z: 0, role: "core" },
-  { id: "app", step: "3", label: "Your app", sub: "JWT · API", x: 2.65, y: 0.55, z: 0.15, role: "edge" },
-  { id: "mesh", step: "4", label: "Your stack", sub: "Kafka off · webhooks", x: 0, y: -1.45, z: 0.35, role: "out" },
+  { id: "user", step: "1", label: "Browser", sub: "/login · PKCE", x: -2.65, y: 0.4, z: 0.15, role: "edge" },
+  { id: "aaax", step: "2", label: "AAAX", sub: "OIDC AS", x: 0, y: 1.15, z: 0, role: "core" },
+  { id: "app", step: "3", label: "Your app", sub: "JWT · JWKS", x: 2.65, y: 0.4, z: 0.15, role: "edge" },
 ];
 
 type EdgeDef = {
@@ -38,14 +38,12 @@ type EdgeDef = {
 const EDGES: EdgeDef[] = [
   { from: "user", to: "aaax", kind: "login", label: "login", labelT: 0.45, lift: 0.45 },
   { from: "aaax", to: "app", kind: "token", label: "OIDC JWT", labelT: 0.55, lift: 0.45 },
-  { from: "aaax", to: "mesh", kind: "event", label: "events", labelT: 0.48, lift: 0.2 },
 ];
 
 const COPY: Record<string, string> = {
-  user: "User opens /sign-in or starts OAuth (PKCE).",
-  aaax: "Spring Authorization Server — session, MFA, tokens, JWKS.",
-  app: "Your API validates the JWT. Business logic stays here.",
-  mesh: "CloudEvents → Kafka or HMAC webhook. You send SMS/email.",
+  user: "Hosted /login. PKCE is required on /oauth2/authorize.",
+  aaax: "Spring Authorization Server — tokens, JWKS, RFC 8414.",
+  app: "Your API validates the JWT against JWKS. Business stays here.",
   default: "Drag to look · scroll zoom · click a node",
 };
 

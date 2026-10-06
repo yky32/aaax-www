@@ -6,11 +6,14 @@ interface Props {
   description?: string;
 }
 
+const SITE = "https://aaax-www.vercel.app";
 const {
   title = "AAAX — self-host OpenID Connect authentication server",
   description =
     "Self-host OIDC for Spring/JVM teams. Boot 4.1.1 · Java 21 · PKCE · hosted login. Apache-2.0.",
 } = Astro.props;
+const canonical = new URL(Astro.url.pathname, SITE).href;
+const ogImage = `${SITE}/og.png`;
 ---
 
 <!doctype html>
@@ -20,9 +23,26 @@ const {
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <meta name="generator" content={Astro.generator} />
-    <meta property="og:title" content="AAAX" />
+    <meta name="theme-color" content="#f6f3ec" />
+    <link rel="canonical" href={canonical} />
+    <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     <meta property="og:type" content="website" />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="AAAX — self-host OIDC, one Spring jar" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>{title}</title>
   </head>

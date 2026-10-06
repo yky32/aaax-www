@@ -33,6 +33,9 @@ const notShipped = [
   "Passkeys · SAML · orgs",
   "SaaS console · internet trial account",
 ];
+
+const COMPOSE = `git clone https://github.com/yky32/aaax.git && cd aaax
+docker compose --profile stack up --build`;
 ---
 
 <Layout
@@ -79,7 +82,7 @@ const notShipped = [
     <section class="mt-11" aria-labelledby="flow">
       <h2 id="flow" class="serif text-[1.65rem] md:text-2xl">Login → tokens → your apps</h2>
       <p class="mt-2 text-sm text-[var(--muted)]">
-        Authenticate with AAAX; validate JWTs in your services. Optional Kafka is off by default.
+        Authenticate with AAAX; validate JWTs in your services. Kafka is off by default — not on this diagram.
       </p>
       <FlowStage />
     </section>
@@ -99,7 +102,10 @@ const notShipped = [
         }
       </div>
       <div class="shell mt-4">
-        <div class="shell-bar">clone · compose · :8081</div>
+        <div class="shell-bar">
+          <span>clone · compose · :8081</span>
+          <button type="button" class="shell-copy" data-copy={COMPOSE}>Copy</button>
+        </div>
         <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
 docker compose --profile stack up --build
 <span class="c"># http://localhost:8081 — local seed, not production</span>
@@ -178,4 +184,22 @@ docker compose --profile stack -f docker-compose.yml -f compose.portal.yml up --
       </p>
     </footer>
   </div>
+  <script>
+    document.querySelectorAll("[data-copy]").forEach((btn) => {
+      if (!(btn instanceof HTMLButtonElement)) return;
+      btn.addEventListener("click", async () => {
+        const text = btn.getAttribute("data-copy") ?? "";
+        try {
+          await navigator.clipboard.writeText(text);
+          const prev = btn.textContent;
+          btn.textContent = "Copied";
+          window.setTimeout(() => {
+            btn.textContent = prev;
+          }, 1500);
+        } catch {
+          btn.textContent = "Failed";
+        }
+      });
+    });
+  </script>
 </Layout>
