@@ -3,9 +3,9 @@ import Layout from "../layouts/Layout.astro";
 import FlowStage from "../components/FlowStage.astro";
 
 const GH = "https://github.com/yky32/aaax";
-const README = "https://github.com/yky32/aaax/blob/main/README.md";
 const BOOKLET = "https://github.com/yky32/aaax/blob/main/docs/booklet.md";
-const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.9.0";
+const RELEASE = "https://github.com/yky32/aaax/releases/tag/v0.9.1";
+const PORTAL = "https://github.com/yky32/aaax-portal";
 
 const modules = [
   {
@@ -20,23 +20,24 @@ const modules = [
 
 const shipped = [
   { t: "OIDC + RFC 8414", d: "Discovery, JWKS, /oauth2/token (RFC 6749 JSON access_token)." },
-  { t: "PKCE + hosted login", d: "Seed public client aaax-pkce; /oauth2/authorize → /login → loopback code." },
+  { t: "PKCE + hosted /login", d: "Seed public client aaax-pkce; /oauth2/authorize → /login → loopback code." },
   { t: "Register · OTP · password", d: "User registration, OTP flows, custom-password-grant + refresh_token." },
   { t: "Social idToken verify", d: "Google + Apple link/verify — not a separate token grant." },
-  { t: "Postgres + Redis local", d: "Compose-friendly; Kafka off by default (AAAX_KAFKA_ENABLED=false)." },
+  { t: "Postgres + Redis local", d: "docker compose --profile stack. Kafka off by default." },
   { t: "Boot 4.1.1 · Java 21", d: "Jackson 3 (tools.jackson); mvn test + CI runtime smoke." },
 ];
 
 const notShipped = [
-  "Hosted /admin · /sign-in product UI",
+  "in-jar /admin · /sign-in product UI",
   "Event Bus catalog · /v1/accounts",
   "Passkeys · SAML · orgs",
+  "SaaS console · internet trial account",
 ];
 ---
 
 <Layout
   title="AAAX — self-host OpenID Connect authentication server"
-  description="Self-host OIDC for Spring/JVM teams. Boot 4.1.1 · Java 21 · Apache-2.0. Honest scope — see booklet §2."
+  description="Self-host OIDC in one Spring jar. Boot 4.1.1 · Java 21 · PKCE · hosted /login. Clone and run — not a playground."
 >
   <div class="wrap wrap--wide">
     <header class="flex items-start justify-between gap-4">
@@ -54,24 +55,25 @@ const notShipped = [
 
     <p class="stamp mt-7">
       <span class="dot" aria-hidden="true"></span>
-      <a class="underline underline-offset-2" href={RELEASE}>v0.9.0</a> · Apache-2.0 · Boot&nbsp;4.1.1 · JDK&nbsp;21
+      <a class="underline underline-offset-2" href={RELEASE}>v0.9.1</a> · Apache-2.0 · Boot&nbsp;4.1.1 · JDK&nbsp;21
     </p>
 
     <h1 class="serif mt-4 text-[2.2rem] leading-[1.12] md:text-[2.85rem] md:leading-[1.08]">
-      Self-host <span class="mark">OIDC</span> · one jar · honest scope.
+      Self-host <span class="mark">OIDC</span> · one Spring jar.
     </h1>
 
     <p class="mt-4 text-[1.02rem] text-[var(--muted)]">
-      <strong class="font-medium text-[var(--ink)]">AAAX</strong> is a self-host OpenID Connect authentication server
-      for Spring/JVM teams — not a Clerk clone, not Keycloak, not a mesh product. Product facts:
-      <a class="underline underline-offset-2" href={BOOKLET}>docs/booklet.md</a> (code wins if it drifts).
+      <strong class="font-medium text-[var(--ink)]">AAAX</strong> is a self-host OpenID Connect
+      authentication server for Spring/JVM teams. Clone it. Run it. Own the keys. Not a Clerk
+      console, not Keycloak, not an internet demo.
+      Facts: <a class="underline underline-offset-2" href={BOOKLET}>docs/booklet.md</a>
+      (code wins if it drifts).
     </p>
 
     <div class="mt-6 flex flex-wrap gap-2.5">
       <a class="btn btn-fill" href={GH}>Open the repo</a>
-      <a class="btn btn-ghost" href={RELEASE}>v0.9.0 release</a>
-      <a class="btn btn-ghost" href={README}>README</a>
-      <a class="btn btn-ghost" href="/mcp-auth">MCP Auth</a>
+      <a class="btn btn-ghost" href={BOOKLET}>Booklet</a>
+      <a class="btn btn-ghost" href={PORTAL}>Portal</a>
     </div>
 
     <section class="mt-11" aria-labelledby="flow">
@@ -97,12 +99,15 @@ const notShipped = [
         }
       </div>
       <div class="shell mt-4">
-        <div class="shell-bar">clone · build · run</div>
+        <div class="shell-bar">clone · compose · :8081</div>
         <pre><code>git clone https://github.com/yky32/aaax.git && cd aaax
-export JAVA_HOME=…/openjdk@21   <span class="c"># JDK 21 ; avoid JDK 26 + old lombok</span>
-mvn -DskipTests package
-java -jar target/aaax-0.9.0.jar
-<span class="c"># :8081 — AAAX_LOCAL_SEED=true for first-clone smoke user/client</span></code></pre>
+docker compose --profile stack up --build
+<span class="c"># http://localhost:8081 — local seed, not production</span>
+
+<span class="c"># optional operator UI (separate repo, points at your jar)</span>
+git clone https://github.com/yky32/aaax-portal.git ../aaax-portal
+docker compose --profile stack -f docker-compose.yml -f compose.portal.yml up --build
+<span class="c"># http://127.0.0.1:5173</span></code></pre>
       </div>
     </section>
 
@@ -125,6 +130,30 @@ java -jar target/aaax-0.9.0.jar
         <strong class="text-[var(--ink)]">Not in this jar:</strong>
         {notShipped.join(" · ")}
       </p>
+      <p class="mt-2 text-sm text-[var(--muted)]">
+        Operator UI is <a class="underline underline-offset-2" href={PORTAL}>yky32/aaax-portal</a> —
+        not served from the jar.
+      </p>
+    </section>
+
+    <section class="mt-12" aria-labelledby="fit">
+      <h2 id="fit" class="serif text-[1.65rem] md:text-2xl">Fit</h2>
+      <div class="mt-4 grid gap-3 sm:grid-cols-2">
+        <article class="card">
+          <h3>For you</h3>
+          <p>
+            Spring/JVM teams that want a native Java authorization server, clone in five minutes,
+            and keep keys on their own metal.
+          </p>
+        </article>
+        <article class="card">
+          <h3>Not for you</h3>
+          <p>
+            You want a SaaS console, a hosted trial account, or Keycloak-shaped admin in the jar.
+            This site is not a playground.
+          </p>
+        </article>
+      </div>
     </section>
 
     <section class="mt-12" aria-labelledby="line">
@@ -132,7 +161,7 @@ java -jar target/aaax-0.9.0.jar
       <blockquote
         class="serif m-0 mt-3 border-l-[3px] border-[var(--accent)] pl-4 text-[1.55rem] leading-snug md:text-[1.7rem]"
       >
-        AAAX authenticates.<br />Your apps validate JWTs.
+        Identity you run.<br />Signals you own.
       </blockquote>
       <p class="mt-4 text-sm text-[var(--muted)]">
         Product name: <strong class="text-[var(--ink)]">AAAX</strong> · license Apache-2.0 · eng SoT:
@@ -143,8 +172,9 @@ java -jar target/aaax-0.9.0.jar
     <footer class="site">
       <p>
         AAAX by <a href="https://github.com/yky32">yky32</a> ·
-        <a href={RELEASE}>v0.9.0</a> ·
-        <a href={GH}>github.com/yky32/aaax</a>
+        <a href={RELEASE}>v0.9.1</a> ·
+        <a href={GH}>github.com/yky32/aaax</a> ·
+        <a href="/mcp-auth">MCP Auth</a>
       </p>
     </footer>
   </div>
